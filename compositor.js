@@ -65,7 +65,7 @@ export class Compositor {
     this.canvas = canvas;
     this.resultBar = resultBar;
     this.game = canvas.closest('#game');
-    this.ctx = canvas.getContext('2d', { alpha: false });
+    this.ctx = canvas.getContext('2d');
     this.source = document.createElement('canvas');
     this.source.width = SRC_WIDTH;
     this.source.height = 272;
@@ -229,6 +229,8 @@ export class Compositor {
   well(left, top, k) {
     const x = left + 4 * k, y = top + 4 * k;
     this.wellRect = [round(left), round(top), round(WELL_W * k), round(WELL_H * k)];
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(...this.wellRect);
     if (this.frame.naturalWidth) this.ctx.drawImage(this.frame, ...this.wellRect);
     if (this.scene === 'dance') {
       this.dance(x, y, k);
@@ -275,16 +277,17 @@ export class Compositor {
     }
   }
 
-  sideHUD(x, top, width, height, keys, anchored = false) {
+  sideHUD(x, top, width, height, keys, framed = false) {
     if (this.scene === 'dance') keys = keys.filter(key => key !== 'next');
     const cx = x + width / 2;
     const slots = keys.map(key => key === 'next' || key === 'stats' ? 38 : 25);
     const slotTotal = slots.reduce((a, b) => a + b, 0);
     const gaps = keys.length - 1;
     const scale = Math.min(width / 50, height / (slotTotal + 6 * gaps), 2);
-    const gap = gaps ? Math.min((anchored ? 12 : 24) * scale, (height - slotTotal * scale) / gaps) : 0;
+    const gap = gaps ? Math.min((framed ? 12 : 24) * scale, (height - slotTotal * scale) / gaps) : 0;
     const total = slotTotal * scale + gap * gaps;
-    let y = top + (anchored ? 0 : Math.max(0, (height - total) / 2));
+    let y = top + (framed ? 0 : Math.max(0, (height - total) / 2));
+    if (framed) this.hudPanel(x - 3, y - 4, width + 6, total + 8);
     keys.forEach((key, i) => {
       const slot = slots[i] * scale;
       if (key === 'stats') this.stats(cx, y, width, slot, scale);
@@ -317,12 +320,26 @@ export class Compositor {
     for (let i = 0; i < 15; i++) this.fit([56, 96 + 8 * i, 144, 8], cx, first + 10 * i * k, k);
   }
 
+  hudPanel(x, y, w, h) {
+    x = round(x);
+    y = round(y);
+    w = round(w);
+    h = round(h);
+    if (w < 3 || h < 3) return;
+    this.ctx.fillStyle = '#27374b';
+    this.ctx.fillRect(x, y, w, h);
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+  }
+
   portrait(w, h) {
     const pad = Math.min(7, Math.max(3, w * .012));
     const headerWidth = Math.min(w - PAUSE_CORNER - pad, 624);
     const scale = Math.min(2.05, w / 260, h / 320);
     const headers = this.scene === 'dance' ? [['score', .45], ['high', .55]] :
       [['next', .24], ['score', .34], ['high', .42]];
+    const fieldTop = round(pad + 30 * scale + 6);
+    this.hudPanel(2, 2, headerWidth + pad - 3, fieldTop - 4);
     let left = pad;
     for (const [key, portion] of headers) {
       const slot = headerWidth * portion;
@@ -331,7 +348,6 @@ export class Compositor {
     }
 
     // Keep the same well through play, the bonus dance and game over.
-    const fieldTop = round(pad + 30 * scale + 6);
     const fieldWidth = w - this.dropWidth;
     const fieldBottom = h - this.controlsHeight;
     const k = Math.min((fieldWidth - 2 * pad) / WELL_W, (fieldBottom - fieldTop) / WELL_H);
@@ -339,10 +355,11 @@ export class Compositor {
 
     // Stack the native line count, level and unlabeled piece chart above drop.
     const railTop = Math.max(fieldTop, PAUSE_CORNER) + pad;
-    const railBottom = h * this.dropTop - 2 * pad;
-    const railHeight = railBottom - railTop;
     const railWidth = this.dropWidth - 2 * pad;
+    const railBottom = Math.min(h * this.dropTop - 2 * pad, railTop + railWidth * 2.7);
+    const railHeight = railBottom - railTop;
     const railCenter = w - this.dropWidth / 2;
+    this.hudPanel(railCenter - this.dropWidth / 2 + 2, railTop - 5, this.dropWidth - 4, railHeight + 10);
     const railScale = Math.min(scale, railWidth / 50, railHeight / 105);
     this.metric('lines', railCenter, railTop, railWidth, railScale);
     this.metric('level', railCenter, railTop + 31 * railScale, railWidth, railScale);
@@ -370,18 +387,24 @@ export class Compositor {
     // horizontal position. End the rail above that glyph's upper edge.
     const nearDrop = rightX + rightW > w * .875 - 18;
     const rightBottom = nearDrop && this.scene !== 'dance' ? Math.min(bottom, h * .60 - 18) : bottom;
-    this.sideHUD(left - gap - side, y, side, Math.max(48, bottom - y), ['score', 'lines', 'level'], true);
-    this.sideHUD(rightX, rightY, rightW, Math.max(48, rightBottom - rightY), ['next', 'high', 'stats'], true);
+    const leftX = left - gap - side;
+    const leftHeight = Math.max(48, bottom - y);
+    const rightHeight = Math.max(48, rightBottom - rightY);
+    this.sideHUD(leftX, y, side, leftHeight, ['score', 'lines', 'level'], true);
+    this.sideHUD(rightX, rightY, rightW, rightHeight, ['next', 'high', 'stats'], true);
   }
 
   paint() {
     if (!this.nes) return;
     const w = this.canvas.width, h = this.canvas.height;
     if (w < 2 || h < 2) return;
-    this.ctx.fillStyle = '#000';
-    this.ctx.fillRect(0, 0, w, h);
+    this.ctx.clearRect(0, 0, w, h);
     if (this.scene === 'scores') {
-      if (!this.resultBar.hidden) this.scores(w, this.resultBar.offsetTop - 14);
+      if (!this.resultBar.hidden) {
+        const available = this.resultBar.offsetTop - 14;
+        this.hudPanel(3, 3, w - 6, available);
+        this.scores(w, available);
+      }
       return;
     }
     if (!GAME.has(this.scene)) {

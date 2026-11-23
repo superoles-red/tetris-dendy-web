@@ -1,6 +1,6 @@
 import { Engine } from './engine.js';
 import { Compositor } from './compositor.js';
-import { readScene, createSoloStart, enteringInitials } from './cartridge.js';
+import { readScene, createSoloStart, enteringInitials, gameOverReady, endGameWait } from './cartridge.js';
 import { SHUFFLE, TRACKS } from './cartridge-audio.js';
 import { bindControls } from './controls.js';
 import { bindInstall } from './install.js';
@@ -16,6 +16,7 @@ const game = byId('game');
 const overlay = byId('overlay');
 const notice = byId('notice');
 const afterGame = byId('after-game');
+const gameOverNext = byId('game-over-next');
 const resultBar = byId('result-bar');
 const recordInput = byId('record-input');
 const recordsTable = byId('records-table');
@@ -174,6 +175,7 @@ function enterRun(scene = 'play') {
   observedEnd = false;
   pendingRecord = null;
   afterGame.hidden = true;
+  gameOverNext.hidden = true;
   resultBar.hidden = true;
   game.classList.remove('scores');
   activeScene = scene;
@@ -459,6 +461,8 @@ function onFrame(buffer, nes, present = true) {
     home();
     return;
   }
+  const canAdvance = scene === 'gameover' && gameOverReady(nes);
+  if (gameOverNext.hidden === canAdvance) gameOverNext.hidden = !canAdvance;
   const showResults = scene === 'scores';
   if (resultBar.hidden === showResults) {
     resultBar.hidden = !showResults;
@@ -495,7 +499,7 @@ function localize() {
     '#sound': t.sound, '#audio-menu h1': t.sound, '#audio-back': t.back, '#after-game': t.playAgain,
     '#home-support': t.support,
     '#record-edit-title': t.newRecord, '#record-label': t.recordName,
-    '#record-name-hint': t.recordNameHint, '#record-submit': t.saveRecord,
+    '#record-submit': t.saveRecord, '#game-over-next': t.showResults,
     '#record-confirm-title': t.saveRecordPrompt, '#record-confirm-yes': t.yes, '#record-confirm-no': t.no,
     '#records-replay': t.playAgain,
     '#records': t.records, '#records-menu h1': t.records, '#records-back': t.back,
@@ -645,8 +649,14 @@ function tapCartridge(button) {
   setInput('tap-' + button, button, true);
   setInput('tap-' + button, button, false);
 }
+function advanceGameOver() {
+  if (view === 'game') endGameWait(engine.nes);
+}
+gameOverNext.onclick = advanceGameOver;
 byId('screen').addEventListener('click', () => {
-  if (view === 'game' && activeScene === 'dance') tapCartridge('a');
+  if (view !== 'game') return;
+  if (activeScene === 'dance') tapCartridge('a');
+  if (activeScene === 'gameover') advanceGameOver();
 });
 
 for (const type of ['contextmenu', 'selectstart', 'dragstart', 'dblclick', 'gesturestart', 'gesturechange']) {
@@ -664,7 +674,10 @@ window.addEventListener('keydown', event => {
   const code = event.code;
   if (event.isTrusted) unlockMenuMusic();
   if (view === 'game') {
-    if (bindings[code]) {
+    if (activeScene === 'gameover' && (code === 'Enter' || code === 'Space')) {
+      event.preventDefault();
+      if (!event.repeat) advanceGameOver();
+    } else if (bindings[code]) {
       event.preventDefault();
       setInput(code, bindings[code], true);
     } else if (['Escape','KeyP','Space','Enter'].includes(code)) {

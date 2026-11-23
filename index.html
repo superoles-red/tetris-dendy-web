@@ -20,6 +20,7 @@
   <main id="machine" aria-label="Tengen Tetris">
     <section id="game" aria-label="Game" hidden>
       <div id="screen"><canvas id="picture" aria-label="Tetris playfield and statistics"></canvas></div>
+      <button class="action primary" id="game-over-next" hidden>RECORDS</button>
       <div id="result-bar" hidden>
         <button id="after-game" class="action primary" hidden>PLAY AGAIN</button>
       </div>
@@ -69,9 +70,8 @@
           <h1 id="record-edit-title" tabindex="-1">NEW RECORD</h1>
           <form id="record-form">
             <label for="record-input" id="record-label">NAME</label>
-            <input id="record-input" type="text" dir="auto" aria-describedby="record-name-hint"
+            <input id="record-input" type="text" dir="auto" placeholder="··········"
                    autocomplete="off" spellcheck="false" enterkeyhint="done" required>
-            <small id="record-name-hint">UP TO 10 CHARACTERS</small>
             <button class="action primary" id="record-submit" disabled>SAVE RECORD</button>
           </form>
         </div>

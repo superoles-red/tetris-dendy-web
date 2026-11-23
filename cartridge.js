@@ -25,6 +25,23 @@ export function enteringInitials(nes) {
   return readScene(nes) === 'scores' && nes.cpu.mem[0x74] !== 0;
 }
 
+export function gameOverReady(nes) {
+  if (readScene(nes) !== 'gameover') return false;
+  const ram = nes.cpu.mem;
+  // The score jingle ends around tick 173. Allow the buffered audio tail to
+  // drain before enabling the button, even on a slower display.
+  if (ram[0x6a] > 168) return false;
+  for (let i = 0; i < 11; i++) {
+    if (ram[0x020e + i] === 5 && ram[0x0292 + i]) return false;
+  }
+  return true;
+}
+
+export function endGameWait(nes) {
+  // Let the cartridge run its own Game Over to ranking transition.
+  if (gameOverReady(nes)) nes.cpu.mem[0x6a] = 1;
+}
+
 const START = 3, UP = 4, DOWN = 5;
 const menuSizes = { mode: 5, level: 10, handicap: 5, music: 5 };
 const cursorAddress = { mode: 0x4f0, level: 0x4f1, handicap: 0x4f3, music: 0x4f5 };

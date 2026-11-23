@@ -28,7 +28,7 @@
 }
 [hidden] { display: none !important; }
 html, body {
-  margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000;
+  margin: 0; width: 100%; height: 100%; overflow: hidden; background: #070c13;
   touch-action: pan-y; overscroll-behavior: none;
 }
 body { font: 16px/1.4 Cart, monospace; color: #fff; -webkit-tap-highlight-color: transparent; }
@@ -40,6 +40,11 @@ img { -webkit-user-drag: none; }
 img, canvas, .panel, .turn { image-rendering: pixelated; }
 :root[data-iphone], :root[data-iphone] body { height: var(--phone-app-height, 100%); }
 #machine { position: relative; height: 100%; height: var(--phone-app-height, 100dvh); }
+#machine::before {
+  content: ''; position: absolute; inset: var(--ui-safe-top) 0 0; pointer-events: none;
+  background: url("./assets/block.png") center top / 32px 32px repeat;
+  image-rendering: pixelated; filter: grayscale(1); opacity: .095;
+}
 #game, #overlay {
   position: absolute;
   inset: var(--ui-safe-top) var(--device-safe-right) var(--device-safe-bottom) var(--device-safe-left);
@@ -62,13 +67,23 @@ img, canvas, .panel, .turn { image-rendering: pixelated; }
   position: absolute; z-index: 2; bottom: var(--result-lift);
   width: min(calc(100% - 32px), 386px); left: 50%; transform: translateX(-50%);
 }
+#game-over-next {
+  position: absolute; z-index: 2; bottom: 6px; left: 50%; transform: translateX(-50%);
+  width: min(calc(100% - 28px), 320px); min-height: 44px;
+}
+@media (orientation: landscape) {
+  #game-over-next {
+    left: auto; right: 6px; transform: none; width: auto;
+    font-size: clamp(10px, 2vw, 16px); padding-inline: 8px;
+  }
+}
 #after-game { width: 100%; min-height: var(--result-height); border-color: var(--gold); font-size: clamp(18px, 4.5vw, 24px); }
 @media (orientation: landscape) {
   #game.scores { --result-lift: clamp(12px, 5dvh, 40px); --result-height: clamp(50px, 9dvh, 70px); }
 }
 #overlay {
   z-index: 4; display: grid; place-items: center; align-items: safe center; padding: 8px;
-  background: #000; overflow: auto; touch-action: pan-y;
+  overflow: auto; touch-action: pan-y;
 }
 #overlay.in-game { background: rgba(0,0,0,.79); }
 .panel {
@@ -158,12 +173,13 @@ h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-
 .record-name-slot { display: block; width: 100%; }
 .record-name-slot bdi { display: inline-block; }
 #record-form { display: grid; gap: 8px; }
-#record-form label, #record-name-hint { color: var(--ice); font-size: 12px; }
+#record-form label { color: var(--ice); font-size: 12px; }
 #record-input {
   width: 100%; min-width: 0; min-height: 46px; padding: 8px 10px; border: 2px solid var(--sky);
   border-radius: 0; background: #000; color: #fff; font: 18px/1.3 Cart, system-ui, sans-serif;
   -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
 }
+#record-input::placeholder { color: var(--sky); letter-spacing: .22em; opacity: .8; }
 #record-input:focus { outline: 2px solid var(--ice); outline-offset: 2px; }
 #record-confirm-name { width: 100%; color: var(--ice); text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; }
 #overlay[data-menu="records"] .panel { width: min(100%, 510px); }

@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = '6c56e9287bc137288a82';
+const BUILD = '92549892d976448583a9';
 const FILES = [
-  ["app.js", "sha256-b12gHq8N5Ffd48QylZ7y3q0Hh8Qp2WMtBwjmmyDlZRI="],
+  ["app.js", "sha256-2NMHdAOs2cxw8rojhxwgLTzmyHh5ClgUtYPFvBvFtZ0="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
@@ -22,21 +22,21 @@ const FILES = [
   ["assets/well.png", "sha256-J4sDuw/Zrpe1+fgRJYiR7BzCmgj7L+V++oP0f1ZTNFA="],
   ["audio-output.js", "sha256-6InF/O0z1Tz8QZSYtWlElH31ZQXY1Q67/qX4SQJ9BZg="],
   ["cartridge-audio.js", "sha256-fmwOEki5fgDHS8VUNpV53FechuGuaxWA2Xwv95VURE4="],
-  ["cartridge.js", "sha256-GE4dL5S9G+aODLmrarnUWTpWqp0udFtzr55GTAVNw48="],
-  ["compositor.js", "sha256-6MHl8cxMStyfuGlDkFhTCiV0giLgzA6CF/cmkWEbJ+0="],
+  ["cartridge.js", "sha256-s/a7fSRw/gCPGGdIDpTDtHCm5K7R7Ce9BCoc0Cjbqgo="],
+  ["compositor.js", "sha256-ub9QhlErYbvYgLGjbueuJGLBqJVnhTwND+Ov6EDjg6U="],
   ["controls.css", "sha256-YPFYGJ4AsmBpkZZRctAKPEO7S1Gib7MfjvqglqLLTQQ="],
   ["controls.js", "sha256-XIWTtj5ItRHZGJpN9Vk9JdauSgCPU+mEWcWPn20Fvgw="],
   ["engine.js", "sha256-+FI2sSwXKsLuyW6A4CtYCsLZdxRuEMIJff2lfmY+JzM="],
   ["game-ru.nes", "sha256-M/BKw5U+fW092ICDzW+Q/93IBWg9IPqEB9jC2DWxHUY="],
   ["game.nes", "sha256-U5cKKyWBn5UUu38yp7Voo/S9vYdU2p57kUICDxq46mI="],
-  ["index.html", "sha256-Y/V/IvrsI3HhrGYCN+mH2kpp5xJjs3MqECx7APJQu20="],
+  ["index.html", "sha256-3AIR8oSdY3QgFFK8yqsdAy6zlr7A5PB5oBAizqR8rS4="],
   ["install.css", "sha256-Yrz9MBVuaVKoaGPN1CPgEjUy7pRSI9faEDBX8L1+Tdw="],
   ["install.js", "sha256-J9KYgYcCprIjMvus33Jrvg+weUDTbOQC3s760UF6YV8="],
-  ["locale.js", "sha256-HV4hf7keLtj+Y1hCIsUTptSdhuK3k0QOMFHEl+R/Ac4="],
+  ["locale.js", "sha256-V9nZnGkpwT0PEq7r9e4PuuzGG1q7SpZn4htPENP4bSQ="],
   ["manifest.webmanifest", "sha256-5nKMTk9rEvbDWQ9HW7FOAbX+V8rNu/1zMXftY1ooG3Y="],
   ["rankings.js", "sha256-UX+aRLk201j0Q0IazchA4NlJfkpwUvP4Zkbd7isVZn8="],
   ["saved-run.js", "sha256-tst1iw17LOmAuhKQ3lhtKGEC7n4upmP9Ba+vGw0/YxM="],
-  ["style.css", "sha256-d+Z2Bag++FqmbrEvC4fFhhs0UPqt6l4KoLkT9b/HTlY="],
+  ["style.css", "sha256-TcI8gVpQX1GtLqndb+QfTf/t/ENCpYHt5SNT8qcM3hU="],
   ["vendor/jsnes.js", "sha256-uIpOhApFnEU+rBKvQIrwLSzTCYdZfLlWyfLQ5pRXMPs="],
   ["viewport.js", "sha256-WbUSmMQWKacnoOhK9aqRfJ7L9GV99teYxVt1SoHpRow="]
 ];
