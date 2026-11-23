@@ -1,0 +1,82 @@
+/* The controls share the playfield's safe area, with no reserved row. */
+#game, #game.scores { display: block; position: relative; isolation: isolate; }
+#screen { position: absolute; inset: 0; }
+#game.scores #screen { bottom: 48px; }
+#game #result-bar {
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+  pointer-events: none;
+}
+#result-bar button { pointer-events: auto; }
+.pad {
+  --pair-width: 50%;
+  --key-height: 48px;
+  position: absolute; inset: 0; z-index: 1;
+  display: block; padding: 0; touch-action: none;
+}
+.pad .moves, .pad .turns {
+  position: absolute; bottom: 4px; display: flex; gap: 0; padding: 0;
+  align-items: center; width: var(--pair-width); height: var(--key-height);
+}
+.pad .moves { left: 0; }
+.pad .turns { right: 0; }
+.pad .key {
+  width: 50%; height: 100%; min-width: 0; padding: 0; border: 0;
+  background: transparent; display: grid; place-items: center;
+  outline-offset: -3px; color: white; touch-action: none;
+}
+.pad .key {
+  --ink-outline: drop-shadow(-1px 0 0 #000) drop-shadow(1px 0 0 #000)
+                 drop-shadow(0 -1px 0 #000) drop-shadow(0 1px 0 #000);
+}
+.pad .direction img { width: 16px; pointer-events: none; opacity: .66; filter: var(--ink-outline); }
+.pad .left img { transform: scaleX(-1); }
+.pad .turn { font-size: 0; position: relative; filter: var(--ink-outline); }
+.pad .turn::before {
+  /* The stair-stepped arc and arrowhead use a single 16 x 14 pixel stencil. */
+  --rotate-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 14' shape-rendering='crispEdges'%3E%3Cpath d='M5 0h5v1h2v1h1v1h1v2h2l-3 4-4-4h3V4h-1V3h-1V2H5v1H3v1H2v6h1v1h1v1h5v-1h2v-1h2v2h-1v1h-2v1H4v-1H2v-1H1v-2H0V4h1V2h1V1h3z'/%3E%3C/svg%3E");
+  content: ''; width: 32px; height: 28px; background: #fff; opacity: .82;
+  -webkit-mask: var(--rotate-mark) center / 100% 100% no-repeat;
+  mask: var(--rotate-mark) center / 100% 100% no-repeat;
+}
+.pad .turn[data-button="b"]::before { transform: scaleX(-1); }
+.pad > .down {
+  position: absolute; right: calc(var(--pair-width) / 2 - 32px);
+  bottom: calc(var(--key-height) + 5px); width: 64px; height: 52px;
+  filter: var(--ink-outline);
+}
+.pad > .down img { display: none; }
+.pad > .down::before {
+  content: ''; width: 24px; height: 24px; transform: rotate(90deg);
+  background: var(--gold);
+  -webkit-mask: url("./assets/arrow.png") center / 100% no-repeat;
+  mask: url("./assets/arrow.png") center / 100% no-repeat;
+  image-rendering: pixelated;
+}
+.pad .utility {
+  position: absolute; top: 0; right: 0; bottom: auto;
+  width: 48px; height: 48px; transform: none; font-size: 0; filter: var(--ink-outline);
+}
+.pad .utility::before {
+  content: ''; width: 16px; height: 18px;
+  border-left: 5px solid var(--ice); border-right: 5px solid var(--ice);
+  box-sizing: border-box;
+}
+.pad .key.held, .pad .key:active { outline: none; }
+.pad .key.held img, .pad .turn.held::before, .pad .key:active img { opacity: 1; }
+.pad > .down.held::before { background: #fff; }
+.pad .key:focus-visible { outline: 2px solid var(--sky); }
+#game.scores .pad > .down { visibility: hidden; }
+#game.scores #after-game { min-height: 44px; padding: 6px 10px; background: #000; }
+@media (orientation: landscape) and (pointer: coarse) {
+  .pad { --pair-width: min(28%, 202px); }
+  .pad .moves { left: 6px; }
+  .pad .turns { right: 6px; }
+  .pad > .down { right: calc(var(--pair-width) / 2 - 26px); }
+}
+@media (pointer: fine) and (min-width: 768px) {
+  .pad .direction img { opacity: .58; }
+  .pad .turn::before { opacity: .72; }
+}
+@media (orientation: portrait) {
+  #game.scores .pad .moves, #game.scores .pad .turns { bottom: 48px; }
+}

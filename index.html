@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>Tetris · Tengen</title>
+  <link rel="icon" href="assets/block.png" type="image/png">
+  <link rel="preload" as="font" href="assets/tengen.ttf" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="controls.css">
+</head>
+<body>
+  <main id="machine" aria-label="Tengen Tetris">
+    <section id="game" aria-label="Game" hidden>
+      <div id="screen"><canvas id="picture" aria-label="Tetris playfield and statistics"></canvas></div>
+      <div id="result-bar" hidden>
+        <span id="initials-tip" hidden><img src="assets/arrow.png" class="back-arrow" alt="Left"><img src="assets/arrow.png" alt="Right"> LETTER &nbsp; TURN OK</span>
+        <button id="after-game" class="action primary" hidden>PLAY AGAIN</button>
+      </div>
+      <div class="pad" aria-label="Game controls">
+        <div class="moves">
+          <button class="key direction left" data-button="left" aria-label="Move left" title="Влево · ←"><img src="assets/arrow.png" alt=""></button>
+          <button class="key direction down" data-button="down" aria-label="Soft drop" title="Ускорить падение · ↓"><img src="assets/arrow.png" alt=""></button>
+          <button class="key direction right" data-button="right" aria-label="Move right" title="Вправо · →"><img src="assets/arrow.png" alt=""></button>
+        </div>
+        <button id="pause-key" class="key utility" aria-label="Pause" title="Пауза · Esc">II</button>
+        <div class="turns">
+          <button class="key turn" data-button="b" aria-label="Rotate counterclockwise" title="Против часовой · Z">B</button>
+          <button class="key turn" data-button="a" aria-label="Rotate clockwise" title="По часовой · X или ↑">A</button>
+        </div>
+      </div>
+    </section>
+    <section id="overlay" aria-label="Game menu">
+      <div id="panel" class="panel cover">
+        <picture id="art">
+          <source media="(prefers-reduced-motion: no-preference)" srcset="assets/title-motion.png">
+          <img src="assets/title.png" alt="Tengen presents Tetris" width="192" height="176" draggable="false">
+        </picture>
+        <div class="menu" id="home-menu">
+          <button class="action primary" id="play" disabled>PLAY</button>
+        </div>
+        <div class="menu" id="setup-menu" hidden>
+          <h1>NEW GAME</h1>
+          <div class="choices" id="setup-choices"></div>
+          <button class="action primary" id="start" disabled>START</button>
+          <button class="action" id="setup-back">BACK</button>
+        </div>
+        <div class="menu" id="pause-menu" hidden>
+          <h1>PAUSE</h1>
+          <button class="action primary" id="resume">RESUME</button>
+          <button class="action" id="restart">RESTART</button>
+          <button class="action" id="sound">SOUND</button>
+          <button class="action" id="main-menu">MAIN MENU</button>
+        </div>
+        <div class="menu" id="audio-menu" hidden>
+          <h1>SOUND</h1>
+          <div class="choices" id="audio-choices"></div>
+          <button class="action primary" id="audio-back">BACK</button>
+        </div>
+        <p id="notice" role="status" hidden></p>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

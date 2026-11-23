@@ -1,0 +1,78 @@
+@font-face {
+  font-family: Cart;
+  src: url("./assets/tengen.ttf") format("truetype");
+  font-display: swap;
+}
+:root {
+  color-scheme: dark;
+  --gold: #f7b400;
+  --ice: #bef2ff;
+  --sky: #3cabff;
+  --stone: #525252;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+body { font: 16px/1.4 Cart, monospace; color: #fff; -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button { appearance: none; border-radius: 0; touch-action: manipulation; }
+button:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
+button:disabled { opacity: .5; }
+button, img, canvas { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+img, canvas, .panel, .turn { image-rendering: pixelated; }
+#machine { position: relative; height: 100%; height: 100dvh; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+#game { height: 100%; position: relative; touch-action: none; overflow: hidden; }
+#screen { position: absolute; inset: 0; }
+#picture { display: block; width: 100%; height: 100%; }
+.left img { transform: scaleX(-1); }
+.down img { transform: rotate(90deg); }
+#result-bar { display: grid; place-items: center; min-height: 48px; }
+#initials-tip { color: var(--ice); font-size: 12px; }
+#initials-tip img { width: 12px; margin-right: 4px; }
+.back-arrow { transform: scaleX(-1); }
+#overlay {
+  position: absolute; z-index: 4; inset: 0; display: grid; place-items: center;
+  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  background: #000; overflow: auto;
+}
+#overlay.in-game { background: rgba(0,0,0,.79); }
+.panel {
+  background: #000; border: 16px solid var(--sky); border-image: url("./assets/frame.png") 16 / 16px / 0 repeat;
+  display: grid; place-items: center; gap: clamp(12px, 2.5dvh, 24px);
+  padding: clamp(12px, 3vw, 30px); max-width: 100%;
+}
+.panel.cover { width: min(100%, 464px); }
+#art { display: block; width: min(100%, 42dvh); max-width: 384px; height: auto; object-fit: contain; }
+#art img { display: block; width: 100%; height: auto; }
+.menu { display: grid; justify-items: stretch; gap: 7px; width: min(100%, 286px); }
+.action {
+  background: #000; border: 2px solid transparent; min-height: 45px; font-size: 16px;
+  padding: 8px 12px; color: var(--ice); white-space: nowrap;
+}
+.action:hover, .action:focus-visible { color: #fff; }
+.action.primary { color: var(--gold); border-color: #b15400; }
+.action.primary::before { content: ''; display: inline-block; width: 12px; height: 12px; margin-right: 12px; background: url("./assets/arrow.png") center/100% no-repeat; }
+.action.primary:hover, .action.primary:active { border-color: var(--gold); }
+h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-align: center; }
+.panel.dialog { width: min(100%, 385px); }
+.choices { display: grid; gap: 8px; margin-bottom: 12px; }
+.choice { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; text-align: center; }
+.choice button { background: #000; border: 0; min-height: 44px; }
+.choice button img { width: 12px; }
+.choice button:first-child img { transform: scaleX(-1); }
+.choice small { display: block; color: var(--sky); font-size: 10px; margin-bottom: 3px; }
+.choice output { color: #fff; font-size: 16px; }
+#speed { display: block; padding-top: 4px; color: var(--ice); font-size: 9px; }
+#notice { font: 15px/1.6 system-ui,sans-serif; text-align: center; margin: 0; color: var(--ice); }
+@media (orientation: landscape) {
+  .panel.cover { width: min(94vw, 810px); grid-template-columns: minmax(0,1.26fr) minmax(0,1fr); gap: clamp(20px, 4vw, 64px); }
+  #art { width: min(100%, 76dvh); }
+  .panel { border-width: 16px; }
+}
+@media (max-height: 480px) {
+  .panel { padding: 8px 16px; gap: 5px; }
+  h1 { margin-bottom: 3px; font-size: 16px; }
+  .menu, .choices { gap: 1px; }
+  .choices { margin-bottom: 0; }
+  .action { min-height: 40px; }
+}
