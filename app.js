@@ -15,7 +15,7 @@ const notice = byId('notice');
 const afterGame = byId('after-game');
 const resultBar = byId('result-bar');
 const initialsEntry = byId('initials-entry');
-const renderer = new Compositor(byId('picture'));
+const renderer = new Compositor(byId('picture'), resultBar);
 const menus = ['home', 'setup', 'pause', 'audio'];
 const bindings = {
   ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down',
@@ -206,6 +206,9 @@ function onFrame(buffer, nes, present = true) {
   if (view !== 'game') return;
   let scene = readScene(nes);
   if (scene === 'boot') scene = activeScene;
+  // The cartridge blanks the PPU while it writes the ranking screen.
+  // Leave the last complete picture visible until the table is ready.
+  if (scene === 'scores' && !nes.ppu.f_bgVisibility) return;
   if (scene !== activeScene) {
     releaseAll();
     activeScene = scene;
@@ -216,7 +219,6 @@ function onFrame(buffer, nes, present = true) {
     home();
     return;
   }
-  if (present) renderer.draw(buffer, scene, nes);
   const showResults = scene === 'scores';
   if (resultBar.hidden === showResults) {
     resultBar.hidden = !showResults;
@@ -227,6 +229,7 @@ function onFrame(buffer, nes, present = true) {
     if (afterGame.hidden !== editing) afterGame.hidden = editing;
     if (initialsEntry.hidden === editing) initialsEntry.hidden = !editing;
   }
+  if (present) renderer.draw(buffer, scene, nes);
 }
 
 function localize() {

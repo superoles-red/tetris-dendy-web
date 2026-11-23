@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = '17555907d09cd010f711';
+const BUILD = 'e8dee29b18f3748ecb87';
 const FILES = [
-  ["app.js", "sha256-nYo3JA6K28JPbg7wsWM4b5v8zQ+R08IUBzzOMtPNHy8="],
+  ["app.js", "sha256-TbJ4Y7tOJzMZLQiYrjEMrkAoAQCSHDSQ6IljK74UA4Y="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
@@ -22,8 +22,8 @@ const FILES = [
   ["assets/well.png", "sha256-J4sDuw/Zrpe1+fgRJYiR7BzCmgj7L+V++oP0f1ZTNFA="],
   ["cartridge-audio.js", "sha256-kZGHxT/++rzA3l9MkqtlTVq8k7xCb5QwavYsi2VcFT8="],
   ["cartridge.js", "sha256-GE4dL5S9G+aODLmrarnUWTpWqp0udFtzr55GTAVNw48="],
-  ["compositor.js", "sha256-QjdZco4VIAXN4o+4rhB/GEh+G9VucU1XFU05hKslHrM="],
-  ["controls.css", "sha256-+ZxadiR9FsUPdl2z6JtFnvZSbPXqhsq02VAxzqd5YkE="],
+  ["compositor.js", "sha256-XqP5hbuy9M3sOX+C6YjKIzFoPj5J8Y9TO5i7XDHwlbU="],
+  ["controls.css", "sha256-ZMcQfLctoNOyvfFXx2+oiC5B1Olvqc2mhm3jAIe9xlo="],
   ["controls.js", "sha256-u+m4TakyTczslxaEXbCJdTK27jUHPRtLLmPmUpiyj4E="],
   ["engine.js", "sha256-sNqL04SDI1zE2+3XE5vK8Q51wiOyPXqHro9kt+l0iVM="],
   ["game-ru.nes", "sha256-M/BKw5U+fW092ICDzW+Q/93IBWg9IPqEB9jC2DWxHUY="],
@@ -33,7 +33,7 @@ const FILES = [
   ["install.js", "sha256-DTK3Cw1MfqEE4GN6H7rAfn5v2G86ZrHi9kIMDpNunP0="],
   ["locale.js", "sha256-lst5Wo9aODEyHkntKM++/0KeJdVw2/vfYJ1v+hegyWw="],
   ["manifest.webmanifest", "sha256-5nKMTk9rEvbDWQ9HW7FOAbX+V8rNu/1zMXftY1ooG3Y="],
-  ["style.css", "sha256-HL17n9miAn1aooW3Z7ceSdkXlqiwkkF6cfAhuGoJ+nQ="],
+  ["style.css", "sha256-8jEwvtwxbeeL2BI75nJBgfGDXUsRmD3XyTHLStrPtnU="],
   ["vendor/jsnes.js", "sha256-uIpOhApFnEU+rBKvQIrwLSzTCYdZfLlWyfLQ5pRXMPs="],
   ["viewport.js", "sha256-i+gkpg/UthKbTcHjcJ2PQDEnPk1vGKc4iC4Q9tIcnxo="]
 ];

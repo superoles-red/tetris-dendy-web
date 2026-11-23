@@ -70,12 +70,13 @@
 
 @media (orientation: portrait) {
   #game {
-    --portrait-drop-width: 84px;
-    --portrait-controls-height: 64px;
+    --portrait-drop-width: 76px;
+    --portrait-drop-top: 45%;
+    --portrait-controls-height: 54px;
   }
-  .pad .moves, .pad .turns { bottom: 8px; }
+  .pad .moves, .pad .turns { bottom: 3px; }
   .pad > .down {
-    top: 45%; right: 0; transform: none;
+    top: var(--portrait-drop-top); right: 0; transform: none;
     width: var(--portrait-drop-width);
     height: clamp(88px, 26%, 200px);
   }

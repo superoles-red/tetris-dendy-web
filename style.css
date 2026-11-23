@@ -49,7 +49,6 @@ img, canvas, .panel, .turn { image-rendering: pixelated; }
   --result-lift: clamp(28px, 8.5dvh, 80px);
   --result-height: clamp(58px, 8dvh, 74px);
 }
-#game.scores #screen { bottom: calc(var(--result-lift) + var(--result-height) + 14px); }
 #result-bar {
   position: absolute; z-index: 2; bottom: var(--result-lift);
   width: min(calc(100% - 32px), 386px); left: 50%; transform: translateX(-50%);

@@ -61,8 +61,9 @@ function copyPiece(ppu, pixels, first, originX, originY, destX, destY, width, he
 }
 
 export class Compositor {
-  constructor(canvas) {
+  constructor(canvas, resultBar) {
     this.canvas = canvas;
+    this.resultBar = resultBar;
     this.game = canvas.closest('#game');
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.source = document.createElement('canvas');
@@ -90,6 +91,7 @@ export class Compositor {
     if (!this.landscape) {
       const style = getComputedStyle(this.game);
       this.dropWidth = parseFloat(style.getPropertyValue('--portrait-drop-width'));
+      this.dropTop = parseFloat(style.getPropertyValue('--portrait-drop-top')) / 100;
       this.controlsHeight = parseFloat(style.getPropertyValue('--portrait-controls-height'));
     }
     this.paint();
@@ -287,7 +289,7 @@ export class Compositor {
     const rail = wide ? Math.min(140, w * .27) : 0;
     const designHeight = wide ? 164 : 202;
     const cx = wide ? (w + rail) / 2 : w / 2;
-    // The result controls have their own CSS region below this canvas.
+    // Fit the table above the result controls, on the same canvas as the well.
     const k = Math.min(3.5, (w - 2 * gap - rail) / 144, (h - 2 * gap) / designHeight);
     const listW = 144 * k;
     const top = (h - designHeight * k) / 2;
@@ -305,56 +307,37 @@ export class Compositor {
     for (let i = 0; i < 15; i++) this.fit([56, 96 + 8 * i, 144, 8], cx, first + 10 * i * k, k);
   }
 
-  inlineMetric(key, left, cy, width, scale, height) {
-    const label = this.labels[key];
-    const rect = key === 'stats' ? this.graph : numberBox(this.nes.ppu, key);
-    const valueWidth = key === 'stats' ? 56 : rect[2];
-    const zoom = Math.min(scale, width / (label[2] + 5 + valueWidth * 1.12));
-    const labelW = label[2] * zoom;
-    const valueW = valueWidth * 1.12 * zoom;
-    const x = left + (width - labelW - 5 * zoom - valueW) / 2;
-    this.blit(label, x, cy - 4 * zoom, labelW, 8 * zoom);
-    const valueX = x + labelW + 5 * zoom;
-    if (key === 'stats') {
-      this.chart(valueX + valueW / 2, cy - height / 2, valueW, height, 1.12 * zoom, true);
-    } else {
-      this.blit(rect, valueX, cy - 4.48 * zoom, valueW, 8.96 * zoom);
-    }
-  }
-
   portrait(w, h) {
     const pad = Math.min(7, Math.max(3, w * .012));
-    const width = Math.min(w - 2 * pad, 624);
-    const x = (w - width) / 2;
-    const hasControls = this.scene === 'play';
-    const firstW = hasControls ? Math.min(x + width, w - PAUSE_CORNER) - x : width;
+    const headerWidth = Math.min(w - PAUSE_CORNER - pad, 624);
     const scale = Math.min(2.05, w / 260, h / 320);
-    const first = this.scene === 'dance' ? [['score', .45], ['high', .55]] :
+    const headers = this.scene === 'dance' ? [['score', .45], ['high', .55]] :
       [['next', .24], ['score', .34], ['high', .42]];
-    let left = x;
-    for (const [key, portion] of first) {
-      const slot = firstW * portion;
+    let left = pad;
+    for (const [key, portion] of headers) {
+      const slot = headerWidth * portion;
       this.metric(key, left + slot / 2, pad, slot - 5, scale, 18 * scale);
       left += slot;
     }
-    // The first row leaves the NES pause control its full target. The
-    // second row uses the entire width once it is below that corner.
-    const secondTop = Math.max(PAUSE_CORNER + 1, pad + 30 * scale + 2);
-    const strip = 18 * scale;
-    left = x;
-    for (const [key, portion] of [['lines', .31], ['level', .26], ['stats', .43]]) {
-      const slot = width * portion;
-      this.inlineMetric(key, left, secondTop + strip / 2, slot - 3, scale, strip);
-      left += slot;
-    }
 
-    const fieldTop = secondTop + strip + pad;
-    // The footer holds the visible control marks. The right rail is a
-    // dedicated target for soft drop. Neither covers a pixel of the well.
-    const fieldWidth = w - (hasControls ? this.dropWidth : 0);
-    const fieldBottom = h - (hasControls ? this.controlsHeight : pad);
+    // Keep the same well through play, the bonus dance and game over.
+    const fieldTop = round(pad + 30 * scale + 6);
+    const fieldWidth = w - this.dropWidth;
+    const fieldBottom = h - this.controlsHeight;
     const k = Math.min((fieldWidth - 2 * pad) / WELL_W, (fieldBottom - fieldTop) / WELL_H);
     this.well((fieldWidth - WELL_W * k) / 2, fieldTop, k);
+
+    // Stack the native line count, level and unlabeled piece chart above drop.
+    const railTop = Math.max(fieldTop, PAUSE_CORNER) + pad;
+    const railBottom = h * this.dropTop - 2 * pad;
+    const railHeight = railBottom - railTop;
+    const railWidth = this.dropWidth - 2 * pad;
+    const railCenter = w - this.dropWidth / 2;
+    const railScale = Math.min(scale, railWidth / 50, railHeight / 105);
+    this.metric('lines', railCenter, railTop, railWidth, railScale);
+    this.metric('level', railCenter, railTop + 31 * railScale, railWidth, railScale);
+    const chartTop = railTop + 63 * railScale;
+    this.chart(railCenter, chartTop, railWidth, railBottom - chartTop, railScale * 1.3, true);
   }
 
   landscapeGame(w, h) {
@@ -368,7 +351,7 @@ export class Compositor {
     const gap = Math.min(38, Math.max(10, left * .09));
     const side = Math.max(20, Math.min(180, left - gap - pad));
     const rightX = left + fieldW + gap;
-    const clearRight = w - (this.scene === 'play' ? PAUSE_CORNER : pad) - rightX;
+    const clearRight = w - (this.scene === 'dance' ? pad : PAUSE_CORNER) - rightX;
     const rightW = clearRight >= 66 ? Math.min(side, clearRight) : side;
     const y = Math.min(38, Math.max(9, h * .05));
     const rightY = clearRight < 66 ? Math.max(PAUSE_CORNER + 2, y) : y;
@@ -388,7 +371,7 @@ export class Compositor {
     this.ctx.fillStyle = '#000';
     this.ctx.fillRect(0, 0, w, h);
     if (this.scene === 'scores') {
-      this.scores(w, h);
+      if (!this.resultBar.hidden) this.scores(w, this.resultBar.offsetTop - 14);
       return;
     }
     if (!GAME.has(this.scene)) {
