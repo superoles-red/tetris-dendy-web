@@ -416,13 +416,29 @@ window.addEventListener('keydown', event => {
   }
 });
 window.addEventListener('keyup', event => setInput(event.code, bindings[event.code], false));
+window.addEventListener('pointerup', event => {
+  // On iOS a touch can grant audio activation on release, after pointerdown.
+  if (view === 'game' && event.isTrusted) engine.wakeAudio();
+}, { capture: true });
 function suspend() {
   if (view === 'audio') engine.stopPreview();
   pause();
 }
 window.addEventListener('blur', suspend);
-window.addEventListener('pagehide', suspend);
-document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); });
+function hidePage() {
+  suspend();
+  engine.setAudioPageActive(false);
+}
+function showPage() {
+  if (!document.hidden) engine.setAudioPageActive(true);
+}
+window.addEventListener('pagehide', hidePage);
+window.addEventListener('pageshow', showPage);
+window.addEventListener('focus', showPage);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) hidePage();
+  else showPage();
+});
 
 try {
   await engine.load(settings.language);

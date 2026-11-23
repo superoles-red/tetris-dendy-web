@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = 'e8dee29b18f3748ecb87';
+const BUILD = '9e5df477701d2a9efa8e';
 const FILES = [
-  ["app.js", "sha256-TbJ4Y7tOJzMZLQiYrjEMrkAoAQCSHDSQ6IljK74UA4Y="],
+  ["app.js", "sha256-EAdeYukbQc1SgU4Jm8KH7Rxax0RT9rOqvDJY6FFnD48="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
@@ -20,12 +20,13 @@ const FILES = [
   ["assets/title-ru.png", "sha256-xoI4IQ3ycsqTnvnZdxUOgdHAsUaGeEoc3GAczb6Hgng="],
   ["assets/title.png", "sha256-xuEa7YZnurYAXyVBgFOpD7Gc9mnHp/BztVwQcctRJWw="],
   ["assets/well.png", "sha256-J4sDuw/Zrpe1+fgRJYiR7BzCmgj7L+V++oP0f1ZTNFA="],
+  ["audio-output.js", "sha256-6InF/O0z1Tz8QZSYtWlElH31ZQXY1Q67/qX4SQJ9BZg="],
   ["cartridge-audio.js", "sha256-kZGHxT/++rzA3l9MkqtlTVq8k7xCb5QwavYsi2VcFT8="],
   ["cartridge.js", "sha256-GE4dL5S9G+aODLmrarnUWTpWqp0udFtzr55GTAVNw48="],
   ["compositor.js", "sha256-XqP5hbuy9M3sOX+C6YjKIzFoPj5J8Y9TO5i7XDHwlbU="],
-  ["controls.css", "sha256-ZMcQfLctoNOyvfFXx2+oiC5B1Olvqc2mhm3jAIe9xlo="],
+  ["controls.css", "sha256-7nfd9HiF/RGkCc9XPP5UgcUdV+hnO94fxE/VraPawy8="],
   ["controls.js", "sha256-u+m4TakyTczslxaEXbCJdTK27jUHPRtLLmPmUpiyj4E="],
-  ["engine.js", "sha256-sNqL04SDI1zE2+3XE5vK8Q51wiOyPXqHro9kt+l0iVM="],
+  ["engine.js", "sha256-hiNXY6ohqtHCy7kYRbYunc6JWaF9+xY5hnSyt0yNuao="],
   ["game-ru.nes", "sha256-M/BKw5U+fW092ICDzW+Q/93IBWg9IPqEB9jC2DWxHUY="],
   ["game.nes", "sha256-U5cKKyWBn5UUu38yp7Voo/S9vYdU2p57kUICDxq46mI="],
   ["index.html", "sha256-rvYoL85Bm96Gi5qCwNGePgc4KwXrnrWzGPkiyDynIjQ="],
@@ -33,9 +34,9 @@ const FILES = [
   ["install.js", "sha256-DTK3Cw1MfqEE4GN6H7rAfn5v2G86ZrHi9kIMDpNunP0="],
   ["locale.js", "sha256-lst5Wo9aODEyHkntKM++/0KeJdVw2/vfYJ1v+hegyWw="],
   ["manifest.webmanifest", "sha256-5nKMTk9rEvbDWQ9HW7FOAbX+V8rNu/1zMXftY1ooG3Y="],
-  ["style.css", "sha256-8jEwvtwxbeeL2BI75nJBgfGDXUsRmD3XyTHLStrPtnU="],
+  ["style.css", "sha256-gS0H5PLadeDsHCHmKsEUc/ay7wFbOLn2Rc8MnfOBMmU="],
   ["vendor/jsnes.js", "sha256-uIpOhApFnEU+rBKvQIrwLSzTCYdZfLlWyfLQ5pRXMPs="],
-  ["viewport.js", "sha256-i+gkpg/UthKbTcHjcJ2PQDEnPk1vGKc4iC4Q9tIcnxo="]
+  ["viewport.js", "sha256-WbUSmMQWKacnoOhK9aqRfJ7L9GV99teYxVt1SoHpRow="]
 ];
 // END GENERATED OFFLINE BUNDLE
 

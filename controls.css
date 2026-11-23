@@ -75,6 +75,10 @@
     --portrait-controls-height: 54px;
   }
   .pad .moves, .pad .turns { bottom: 3px; }
+  :root[data-iphone] #game { --portrait-drop-width: 64px; }
+  :root[data-iphone] .pad .moves, :root[data-iphone] .pad .turns {
+    bottom: max(3px, min(8px, var(--device-safe-bottom)));
+  }
   .pad > .down {
     top: var(--portrait-drop-top); right: 0; transform: none;
     width: var(--portrait-drop-width);
