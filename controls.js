@@ -18,21 +18,27 @@ export function bindControls({ pad, setInput, pause }) {
 
   function readPoint(x, y) {
     const box = pad.getBoundingClientRect();
+    if (y < box.top || y >= box.bottom || x < box.left || x >= box.right) return null;
     const mid = box.left + box.width * 0.5;
     const drop = down.getBoundingClientRect();
-    if (x >= drop.left && x < drop.right && y >= drop.top && y < drop.bottom) {
-      return { group: 'drop', button: 'down' };
+    const reach = Math.max(20, box.width * 0.12);
+    if (y >= drop.top && y < drop.bottom) {
+      // The arrow marks a horizontal strip, all the way from the
+      // movement zone to the right edge. Rotation lives outside it.
+      const movementEdge = landscape.matches
+        ? Math.min(mid, movement.getBoundingClientRect().right + reach)
+        : mid;
+      if (x >= movementEdge) return { group: 'drop', button: 'down' };
     }
     const start = box.top + box.height * (portrait.matches ? 0.38 : 0.5);
-    if (y < start || y >= box.bottom || x < box.left || x >= box.right) return null;
+    if (y < start) return null;
     const left = x < mid;
     let split = box.left + box.width * (left ? 0.25 : 0.75);
     if (landscape.matches) {
       const cluster = (left ? movement : rotation).getBoundingClientRect();
       // NuBu's landscape thumb zone reaches at least 20px and up to
       // another 12% of the screen beyond the visible pair.
-      const reach = Math.max(20, box.width * 0.12);
-      if ((left && x > cluster.right + reach) || (!left && x < cluster.left - reach)) return null;
+      if ((left && x >= cluster.right + reach) || (!left && x < cluster.left - reach)) return null;
       split = cluster.left + cluster.width * 0.5;
     }
     return left

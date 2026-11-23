@@ -20,12 +20,28 @@ function percent(value, fallback) {
   return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) / 100 : fallback;
 }
 
+export const SHUFFLE = 'shuffle';
+export const TRACKS = [1, 2, 3, 4];
+
+// Each pair is the voice pointer immediately before and after the full
+// score loops. Shorter repeats inside the score do not use these edges.
+// Both language editions have the same score data and voice driver.
+const SCORE_LOOPS = [
+  [0xe82d, 0xe5d7],
+  [0xf186, 0xf050],
+  [0xf67c, 0xf612],
+  [0xf8d1, 0xf811]
+];
+
 export class CartridgeMix {
   constructor(output) {
     this.output = output;
     this.sound = 1;
     this.music = 1;
     this.track = 1;
+    this.trackChoice = 1;
+    this.remainingTracks = [];
+    this.atLoopEnd = false;
   }
 
   attach(nes, state) {
@@ -36,6 +52,7 @@ export class CartridgeMix {
     this.filter = state?.filter ? [...state.filter] : [0, 0];
     this.filterFor = state?.filterFor ?? null;
     this.noise = 0;
+    this.atLoopEnd = false;
 
     const apu = this.apu;
     const writeRegister = apu.writeReg.bind(apu);
@@ -67,9 +84,58 @@ export class CartridgeMix {
   set({ sound, music, track }, deferTrack) {
     this.sound = percent(sound, this.sound);
     this.music = percent(music, this.music);
-    if (Number.isInteger(track) && track >= 1 && track <= 4) {
-      this.track = track;
+    if (track === SHUFFLE || TRACKS.includes(track)) {
+      if (track !== this.trackChoice) this.startMusic(track, this.track);
       this.requestTrack(deferTrack);
+    }
+  }
+
+  startMusic(choice, previous) {
+    this.trackChoice = choice;
+    this.remainingTracks = [];
+    this.atLoopEnd = false;
+    this.track = choice === SHUFFLE ? this.nextTrack(previous) : choice;
+    return this.track;
+  }
+
+  nextTrack(previous) {
+    const bag = this.remainingTracks;
+    if (!bag.length) {
+      bag.push(...TRACKS);
+      for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+      }
+      const last = bag.length - 1;
+      if (bag[last] === previous) [bag[last], bag[0]] = [bag[0], bag[last]];
+    }
+    return bag.pop();
+  }
+
+  advancePlaylist() {
+    if (this.trackChoice !== SHUFFLE) return;
+    const ram = this.nes.cpu.mem;
+    if (ram[0x29] !== 0 || this.pendingTrack) {
+      this.atLoopEnd = false;
+      return;
+    }
+    const [end, start] = SCORE_LOOPS[this.track - 1];
+    const id = this.track - 1;
+    let ending = false;
+    let looped = false;
+    for (let i = 0; i < 11; i++) {
+      const sequence = ram[0x020e + i];
+      if ((sequence !== id && sequence !== id + 4) || !ram[0x0292 + i]) continue;
+      const pointer = ram[0x0219 + i] | (ram[0x0224 + i] << 8);
+      ending ||= pointer === end;
+      looped ||= pointer === start;
+    }
+    if (this.atLoopEnd && looped) {
+      this.track = this.nextTrack(this.track);
+      this.atLoopEnd = false;
+      this.requestTrack(true);
+    } else {
+      this.atLoopEnd = ending;
     }
   }
 

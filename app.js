@@ -1,6 +1,7 @@
 import { Engine } from './engine.js';
 import { Compositor } from './compositor.js';
 import { readScene, createSoloStart, enteringInitials } from './cartridge.js';
+import { SHUFFLE, TRACKS } from './cartridge-audio.js';
 import { bindControls } from './controls.js';
 import { bindInstall } from './install.js';
 import { translations, preferredLanguage } from './locale.js';
@@ -24,14 +25,15 @@ const bindings = {
 const levels = Array.from({ length: 10 }, (_, n) => n);
 const rows = [0, 3, 6, 9, 12];
 const volumes = [0, 10, 25, 50, 100];
-const settings = { level: 0, handicap: 0, track: 1, sound: 100, musicVolume: 100, language: preferredLanguage() };
+const musicTracks = [SHUFFLE, ...TRACKS];
+const settings = { level: 0, handicap: 0, track: SHUFFLE, sound: 100, musicVolume: 100, language: preferredLanguage() };
 try {
   const s = JSON.parse(localStorage.getItem('tengen-settings')) || {};
   if (s.language === 'en' || s.language === 'ru') settings.language = s.language;
   if (levels.includes(s.level)) settings.level = s.level;
   if (rows.includes(s.handicap)) settings.handicap = s.handicap;
   const track = s.track ?? s.music;
-  if ([1, 2, 3, 4].includes(track)) settings.track = track;
+  if (musicTracks.includes(track)) settings.track = track;
   if (s.muted) settings.sound = 0;
   if (s.muted || track === 0) settings.musicVolume = 0;
   if (volumes.includes(s.sound)) settings.sound = s.sound;
@@ -61,7 +63,7 @@ function applyMix() {
 function settingsChanged(previewTrack) {
   if (view === 'audio') {
     applyMix();
-    if (previewTrack) engine.previewMusic(settings.track, settings.musicVolume);
+    if (previewTrack) engine.previewMusic(settings.musicVolume);
   }
   try { localStorage.setItem('tengen-settings', JSON.stringify(settings)); } catch {}
   for (const refresh of refreshChoices) refresh();
@@ -183,7 +185,7 @@ async function begin() {
       if (menuCheckpoint) engine.restoreStart(menuCheckpoint);
       else engine.reset();
     }
-    const advance = createSoloStart({ level: settings.level, handicap: settings.handicap, music: settings.track });
+    const advance = createSoloStart({ level: settings.level, handicap: settings.handicap, music: engine.startMusic(settings.track) });
     let frames = 0;
     while (true) {
       await new Promise(requestAnimationFrame);
@@ -339,19 +341,20 @@ function addLanguageSwitch(container) {
 
 addChoice('setup', 'level', levels, () => settings.level, n => { settings.level = n; });
 addChoice('setup', 'rows', rows, () => settings.handicap, n => { settings.handicap = n; });
-addChoice('setup', 'music', [0,1,2,3,4], () => settings.musicVolume ? settings.track : 0, n => {
+const trackText = (track, t) => track === SHUFFLE ? t.shuffle : t.tracks[track];
+addChoice('setup', 'music', [...musicTracks, 0], () => settings.musicVolume ? settings.track : 0, n => {
   if (n === 0) settings.musicVolume = 0;
   else {
     settings.track = n;
     if (!settings.musicVolume) settings.musicVolume = 100;
   }
-}, (n, t) => t.tracks[n]);
+}, trackText);
 addLanguageSwitch('setup');
 
 const volumeText = (n, t) => n ? n + '%' : t.off;
 addChoice('audio', 'effects', volumes, () => settings.sound, n => { settings.sound = n; }, volumeText);
 addChoice('audio', 'music', volumes, () => settings.musicVolume, n => { settings.musicVolume = n; }, volumeText);
-addChoice('audio', 'track', [1,2,3,4], () => settings.track, n => { settings.track = n; }, (n, t) => t.tracks[n]);
+addChoice('audio', 'track', musicTracks, () => settings.track, n => { settings.track = n; }, trackText);
 addLanguageSwitch('audio');
 localize();
 

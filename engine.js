@@ -129,6 +129,7 @@ export class Engine {
         this.emitAudio = !stalled || this.accumulator < AUDIO_CATCHUP_MS;
         this.mix.flushTrack();
         this.nes.frame();
+        this.mix.advancePlaylist();
         this.totalFrames++;
         for (const name of this.pendingReleases) {
           if (this.totalFrames - this.heldSince.get(name) >= 2) this.release(name);
@@ -190,7 +191,8 @@ export class Engine {
   }
 
   setMix(options) { this.mix.set(options, this.paused); }
-  previewMusic(track, gain) { return this.audio.previewMusic(track, gain); }
+  startMusic(track) { return this.mix.startMusic(track); }
+  previewMusic(gain) { return this.audio.previewMusic(this.mix.track, gain); }
   stopPreview() { this.audio.pause(); }
   wakeAudio() { return this.audio.wake(); }
   setAudioPageActive(active) { this.audio.setPageActive(active); }
