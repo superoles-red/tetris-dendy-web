@@ -1,3 +1,30 @@
+const EXIT_CHECKPOINT = 'tengen-tetris-exit-checkpoint';
+
+function exitCheckpoint(info) {
+  if (!info) return null;
+  try {
+    const saved = JSON.parse(localStorage.getItem(EXIT_CHECKPOINT));
+    if (saved?.info?.id === info.id && saved.info.owner === info.owner && saved.info.savedAt >= (info.savedAt || 0)) {
+      return saved;
+    }
+  } catch { /* Storage may be unavailable. */ }
+  return null;
+}
+
+export function saveOnExit(info, checkpoint) {
+  // Closing a tab can interrupt IndexedDB before an async transaction commits.
+  // One synchronous copy covers that gap; the restart snapshot stays in IDB.
+  try { localStorage.setItem(EXIT_CHECKPOINT, JSON.stringify({ info, checkpoint })); }
+  catch { /* The periodic IndexedDB checkpoint is still available. */ }
+}
+
+function clearExitCheckpoint(id, owner) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(EXIT_CHECKPOINT));
+    if (saved?.info?.id === id && saved.info.owner === owner) localStorage.removeItem(EXIT_CHECKPOINT);
+  } catch {}
+}
+
 // Keep the small menu preview separate from the full emulator snapshots.
 export function openSavedRun() {
   return new Promise(resolve => {
@@ -27,7 +54,10 @@ class RunStore {
   read() {
     return this.transaction('readonly', (store, result) => {
       const request = store.get('info');
-      request.onsuccess = () => result(request.result ?? null);
+      request.onsuccess = () => {
+        const info = request.result ?? null;
+        result(exitCheckpoint(info)?.info ?? info);
+      };
     });
   }
 
@@ -54,19 +84,29 @@ class RunStore {
   }
 
   take(id, owner) {
+    let consumedOwner;
     return this.transaction('readwrite', (store, result) => {
       const request = store.get('info');
       request.onsuccess = () => {
         if (request.result?.id !== id) return result(null);
-        const info = { ...request.result, owner };
+        const backup = exitCheckpoint(request.result);
+        const info = { ...(backup?.info ?? request.result), owner };
         const checkpoint = store.get('checkpoint');
         const initial = store.get('initial');
         initial.onsuccess = () => {
           if (!checkpoint.result || !initial.result) return result(null);
           store.put(info, 'info');
-          result({ info, checkpoint: checkpoint.result, initial: initial.result });
+          const state = backup?.checkpoint ?? checkpoint.result;
+          if (backup) {
+            consumedOwner = backup.info.owner;
+            store.put(state, 'checkpoint');
+          }
+          result({ info, checkpoint: state, initial: initial.result });
         };
       };
+    }).then(slot => {
+      if (consumedOwner) clearExitCheckpoint(id, consumedOwner);
+      return slot;
     });
   }
 
@@ -79,6 +119,9 @@ class RunStore {
           result(null);
         } else result(request.result ?? null);
       };
+    }).then(info => {
+      if (!info) clearExitCheckpoint(id, owner);
+      return info;
     });
   }
 }

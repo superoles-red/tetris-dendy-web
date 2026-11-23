@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = 'd8d54575357096a512a7';
+const BUILD = '76b78925de589e8a536f';
 const FILES = [
-  ["app.js", "sha256-pNhMqqxG+j5QNjVroVWFDXiGRY7p+phE+XJp9goYWgU="],
+  ["app.js", "sha256-xrVi5UYhDra+ctIsusP+FYBHrwLkOFBNlnRVX07ibQE="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
@@ -34,7 +34,7 @@ const FILES = [
   ["install.js", "sha256-DTK3Cw1MfqEE4GN6H7rAfn5v2G86ZrHi9kIMDpNunP0="],
   ["locale.js", "sha256-7iOjcSVvQtA9pjWVt3DtILGmGHZ8X8Z5FVOFhb+3JOQ="],
   ["manifest.webmanifest", "sha256-5nKMTk9rEvbDWQ9HW7FOAbX+V8rNu/1zMXftY1ooG3Y="],
-  ["saved-run.js", "sha256-EyYh2AyFV1QNat90D88TvI8ARR9GIEbQKOMmUpwfpM4="],
+  ["saved-run.js", "sha256-tst1iw17LOmAuhKQ3lhtKGEC7n4upmP9Ba+vGw0/YxM="],
   ["style.css", "sha256-Lj/Y7oPbxnHS1uvtpiatTm4oh6XUaVDpgfsSPoeVX90="],
   ["vendor/jsnes.js", "sha256-uIpOhApFnEU+rBKvQIrwLSzTCYdZfLlWyfLQ5pRXMPs="],
   ["viewport.js", "sha256-WbUSmMQWKacnoOhK9aqRfJ7L9GV99teYxVt1SoHpRow="]

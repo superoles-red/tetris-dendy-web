@@ -6,7 +6,7 @@ import { bindControls } from './controls.js';
 import { bindInstall } from './install.js';
 import { translations, preferredLanguage } from './locale.js';
 import { bindPhoneInsets } from './viewport.js';
-import { openSavedRun } from './saved-run.js';
+import { openSavedRun, saveOnExit } from './saved-run.js';
 
 bindPhoneInsets();
 
@@ -56,6 +56,7 @@ let confirmIntent = null;
 let nextSaveAt = 0;
 let savePending = 0;
 let saveRevision = 0;
+let pageLeaving = false;
 const runId = () => globalThis.crypto?.randomUUID?.() ?? Date.now() + '-' + Math.random();
 const owner = runId();
 const heldInputs = new Map();
@@ -141,11 +142,11 @@ function menu(name) {
   if (name === 'home') installation.checkReady();
   syncMenuMusic();
 }
-function pause() {
+function pause(save = true) {
   if (view !== 'game') return;
   releaseAll();
   engine.setPaused(true);
-  saveCurrentRun();
+  if (save) saveCurrentRun();
   menu('pause');
 }
 function resume() {
@@ -216,7 +217,7 @@ function observeSave(operation) {
   });
 }
 
-function saveCurrentRun() {
+function saveCurrentRun(exiting = false) {
   const run = activeRun;
   if (!runStore || !run || !runStart) return;
   const nes = engine.nes;
@@ -225,12 +226,14 @@ function saveCurrentRun() {
   const level = nes.ppu.vramMem.subarray(0x20cb, 0x20cd);
   const digits = Array.from(level).filter(tile => tile >= 0x30 && tile <= 0x39);
   const info = {
-    id: run.id, owner,
+    id: run.id, owner, savedAt: Date.now(),
     level: digits.length ? Number(String.fromCharCode(...digits)) : settings.level,
     thumbnail: renderer.thumbnail()
   };
   const initial = run.fresh ? runStart : undefined;
-  const operation = runStore.save(info, engine.captureProgress(), initial);
+  const checkpoint = engine.captureProgress();
+  if (exiting) saveOnExit(info, checkpoint);
+  const operation = runStore.save(info, checkpoint, initial);
   run.fresh = false;
   nextSaveAt = performance.now() + SAVE_INTERVAL;
   observeSave(operation).catch(() => {
@@ -578,19 +581,21 @@ window.addEventListener('pointerup', event => {
   if (view === 'game') engine.wakeAudio();
   else if (!installation.isOpen()) unlockMenuMusic();
 }, { capture: true });
-function suspend() {
+function suspend(save = true) {
   if (view === 'audio') engine.stopPreview();
-  pause();
+  pause(save);
 }
 window.addEventListener('blur', suspend);
 function hidePage() {
-  if (view === 'pause' || view === 'audio') saveCurrentRun();
+  if (!pageLeaving && ['game', 'pause', 'audio'].includes(view)) saveCurrentRun(true);
+  pageLeaving = true;
   engine.stopMenuMusic();
-  suspend();
+  suspend(false);
   engine.setAudioPageActive(false);
 }
 function showPage() {
   if (document.hidden) return;
+  pageLeaving = false;
   engine.setAudioPageActive(true);
   syncMenuMusic();
 }
