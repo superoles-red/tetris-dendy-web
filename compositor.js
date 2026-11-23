@@ -63,6 +63,7 @@ function copyPiece(ppu, pixels, first, originX, originY, destX, destY, width, he
 export class Compositor {
   constructor(canvas) {
     this.canvas = canvas;
+    this.game = canvas.closest('#game');
     this.ctx = canvas.getContext('2d', { alpha: false });
     this.source = document.createElement('canvas');
     this.source.width = SRC_WIDTH;
@@ -86,6 +87,11 @@ export class Compositor {
     if (this.canvas.height !== h) this.canvas.height = h;
     this.ctx.imageSmoothingEnabled = false;
     this.landscape = window.matchMedia('(orientation: landscape)').matches;
+    if (!this.landscape) {
+      const style = getComputedStyle(this.game);
+      this.dropWidth = parseFloat(style.getPropertyValue('--portrait-drop-width'));
+      this.controlsHeight = parseFloat(style.getPropertyValue('--portrait-controls-height'));
+    }
     this.paint();
   }
 
@@ -343,10 +349,12 @@ export class Compositor {
     }
 
     const fieldTop = secondTop + strip + pad;
-    const k = Math.min((w - 2 * pad) / WELL_W, (h - fieldTop - pad) / WELL_H);
-    // Extra room on unusually tall displays remains under the well for
-    // thumbs. The HUD and playfield always stay together.
-    this.well((w - WELL_W * k) / 2, fieldTop, k);
+    // The footer holds the visible control marks. The right rail is a
+    // dedicated target for soft drop. Neither covers a pixel of the well.
+    const fieldWidth = w - (hasControls ? this.dropWidth : 0);
+    const fieldBottom = h - (hasControls ? this.controlsHeight : pad);
+    const k = Math.min((fieldWidth - 2 * pad) / WELL_W, (fieldBottom - fieldTop) / WELL_H);
+    this.well((fieldWidth - WELL_W * k) / 2, fieldTop, k);
   }
 
   landscapeGame(w, h) {

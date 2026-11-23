@@ -20,7 +20,12 @@
     --ui-safe-top: calc(max(var(--device-safe-top), var(--iphone-status-floor, 0px)) + 9px);
   }
 }
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 [hidden] { display: none !important; }
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
 body { font: 16px/1.4 Cart, monospace; color: #fff; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +33,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button { appearance: none; border-radius: 0; touch-action: manipulation; }
 button:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
 button:disabled { opacity: .5; }
-button, img, canvas { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+img { -webkit-user-drag: none; }
 img, canvas, .panel, .turn { image-rendering: pixelated; }
 #machine { position: relative; height: 100%; height: 100dvh; }
 #game, #overlay {

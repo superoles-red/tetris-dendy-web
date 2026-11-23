@@ -67,3 +67,16 @@
   .pad .moves { left: 6px; }
   .pad .turns { right: 6px; }
 }
+
+@media (orientation: portrait) {
+  #game {
+    --portrait-drop-width: 84px;
+    --portrait-controls-height: 64px;
+  }
+  .pad .moves, .pad .turns { bottom: 8px; }
+  .pad > .down {
+    top: 45%; right: 0; transform: none;
+    width: var(--portrait-drop-width);
+    height: clamp(88px, 26%, 200px);
+  }
+}

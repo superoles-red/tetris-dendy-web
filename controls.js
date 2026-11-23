@@ -13,6 +13,7 @@ export function bindControls({ pad, setInput, pause }) {
   pad.append(down);
   const buttons = [...pad.querySelectorAll('[data-button]')];
   for (const turn of rotation.querySelectorAll('button')) turn.textContent = '';
+  const portrait = matchMedia('(orientation: portrait)');
   const landscape = matchMedia('(orientation: landscape) and (pointer: coarse)');
 
   function readPoint(x, y) {
@@ -20,9 +21,10 @@ export function bindControls({ pad, setInput, pause }) {
     const mid = box.left + box.width * 0.5;
     const drop = down.getBoundingClientRect();
     if (x >= drop.left && x < drop.right && y >= drop.top && y < drop.bottom) {
-      return { group: 'action', button: 'down' };
+      return { group: portrait.matches ? 'drop' : 'action', button: 'down' };
     }
-    if (y < box.top + box.height / 2 || y > box.bottom || x < box.left || x > box.right) return null;
+    const start = box.top + box.height * (portrait.matches ? 0.38 : 0.5);
+    if (y < start || y >= box.bottom || x < box.left || x >= box.right) return null;
     const left = x < mid;
     let split = box.left + box.width * (left ? 0.25 : 0.75);
     if (landscape.matches) {
@@ -53,6 +55,12 @@ export function bindControls({ pad, setInput, pause }) {
   new MutationObserver(() => { if (!isPlaying()) clear(); })
     .observe(game, { attributes: true, attributeFilter: ['inert', 'data-scene'] });
 
+  // Cancel WebKit's native long-press recognizer even in the inactive
+  // parts of the play surface. The pause button keeps its normal tap.
+  pad.addEventListener('touchstart', event => {
+    if (isPlaying() && !pauseButton.contains(event.target) && event.cancelable) event.preventDefault();
+  }, { passive: false });
+
   pad.addEventListener('pointerdown', event => {
     if (!isPlaying() || pauseButton.contains(event.target) || event.button !== 0) return;
     const hit = readPoint(event.clientX, event.clientY);
@@ -65,7 +73,7 @@ export function bindControls({ pad, setInput, pause }) {
   pad.addEventListener('pointermove', event => {
     const id = event.pointerId;
     const touch = touches.get(id);
-    if (!touch) return;
+    if (!touch || touch.group === 'drop') return;
     const next = isPlaying() && readPoint(event.clientX, event.clientY);
     if (!next || next.group !== touch.group) {
       release(id);

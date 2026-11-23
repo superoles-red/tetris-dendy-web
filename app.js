@@ -378,7 +378,9 @@ byId('screen').addEventListener('click', () => {
   if (view === 'game' && activeScene === 'dance') tapCartridge('a');
 });
 
-document.addEventListener('contextmenu', event => { if (game.contains(event.target)) event.preventDefault(); });
+for (const type of ['contextmenu', 'selectstart', 'dragstart']) {
+  document.addEventListener(type, event => event.preventDefault());
+}
 window.addEventListener('keydown', event => {
   if (installation.isOpen() || event.ctrlKey || event.metaKey || event.altKey) return;
   const code = event.code;

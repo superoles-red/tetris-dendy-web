@@ -1,7 +1,7 @@
 const words = {
   en: {
     title: 'Install Tetris?', install: 'INSTALL GAME', play: 'PLAY IN BROWSER',
-    open: 'INSTALL GAME', ios: 'In Safari, tap Share, then Add to Home Screen. Enable Open as Web App if shown, then tap Add. If you opened this link inside another app, choose Open in Safari first.',
+    open: 'INSTALL GAME', ios: 'Open the game in Safari. Tap Share, choose Add to Home Screen, then tap Add. Tetris will always be on your Home Screen.',
     chrome: 'In the browser menu, choose Install app or Add to Home screen, then Install.',
     samsung: 'Tap the install icon or choose Add page to → Home screen in the Samsung Internet menu.',
     safari: 'In Safari, choose File → Add to Dock.',
@@ -11,7 +11,7 @@ const words = {
   },
   ru: {
     title: 'Установить Тетрис?', install: 'Установить игру', play: 'Играть в браузере',
-    open: 'Установить игру', ios: 'В Safari нажмите «Поделиться» → «На экран Домой». Включите «Открыть как веб-приложение», если такой пункт есть, и нажмите «Добавить». Если вы открыли ссылку внутри другого приложения, сначала выберите «Открыть в Safari».',
+    open: 'Установить игру', ios: 'Откройте игру в Safari. Нажмите «Поделиться», выберите «На экран Домой» и нажмите «Добавить». Теперь Тетрис всегда будет с вами.',
     chrome: 'В меню браузера выберите «Установить приложение» или «Добавить на главный экран» → «Установить».',
     samsung: 'Нажмите значок установки или выберите «Добавить страницу» → «Главный экран» в меню Samsung Internet.',
     safari: 'В Safari выберите «Файл» → «Добавить в Dock».',
