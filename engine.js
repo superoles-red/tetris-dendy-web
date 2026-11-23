@@ -2,6 +2,9 @@ import './vendor/jsnes.js';
 import { CartridgeMix } from './cartridge-audio.js';
 
 const FRAME_MS = 1000 / 60.0988;
+// A throttled mobile display may present only 10–15 frames/sec. Preserve
+// cartridge time and input between those paints, bounding long tab stalls.
+const MAX_CATCHUP = 8;
 const SAMPLE_RATE = 48000;
 const BLOCK_SIZE = 1024;
 const BUTTONS = Object.fromEntries(
@@ -60,7 +63,7 @@ class CartridgeAudio {
     this.count = 0;
 
     const now = this.context.currentTime;
-    if (this.nextTime > now + 0.15) return;
+    if (this.nextTime > now + 0.18) return;
     if (this.nextTime < now) this.nextTime = now + 0.04;
 
     const buffer = this.context.createBuffer(2, BLOCK_SIZE, SAMPLE_RATE);
@@ -237,7 +240,7 @@ export class Engine {
     if (this.paused) return;
     const delta = this.lastTime === null ? FRAME_MS : time - this.lastTime;
     this.lastTime = time;
-    this.accumulator += Math.min(Math.max(0, delta), FRAME_MS * 4);
+    this.accumulator += Math.min(Math.max(0, delta), FRAME_MS * MAX_CATCHUP);
     try {
       while (this.accumulator >= FRAME_MS && !this.paused) {
         this.accumulator -= FRAME_MS;
