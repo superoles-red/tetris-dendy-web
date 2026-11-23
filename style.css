@@ -62,15 +62,7 @@ img, canvas, .panel, .turn { image-rendering: pixelated; }
   position: absolute; z-index: 2; bottom: var(--result-lift);
   width: min(calc(100% - 32px), 386px); left: 50%; transform: translateX(-50%);
 }
-#after-game, #initials-entry { width: 100%; min-height: var(--result-height); }
-#after-game { border-color: var(--gold); font-size: clamp(18px, 4.5vw, 24px); }
-#initials-entry { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 12px; }
-.letter-choice { display: flex; align-items: center; justify-content: space-between; border: 2px solid var(--stone); }
-.letter-choice span { color: var(--ice); font-size: 12px; }
-.letter-step { align-self: stretch; width: 46px; padding: 0; background: transparent; border: 0; }
-.letter-step img { width: 12px; }
-.back-arrow { transform: scaleX(-1); }
-#initials-entry .primary::before { display: none; }
+#after-game { width: 100%; min-height: var(--result-height); border-color: var(--gold); font-size: clamp(18px, 4.5vw, 24px); }
 @media (orientation: landscape) {
   #game.scores { --result-lift: clamp(12px, 5dvh, 40px); --result-height: clamp(50px, 9dvh, 70px); }
 }
@@ -151,11 +143,28 @@ h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-
 #saved-level { font-size: 13px; color: var(--ice); }
 #confirm-note { margin: 3px 0; font: 14px/1.4 system-ui, sans-serif; text-align: center; }
 .confirm-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.confirm-actions #confirm-no { border-color: var(--stone); }
+.confirm-actions button:last-child { border-color: var(--stone); }
 
 #records-empty { color: var(--ice); font-size: 13px; text-align: center; margin: 10px 0 16px; }
-#records-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; color: var(--sky); }
+#records-table { table-layout: fixed; border-collapse: collapse; width: 100%; margin-bottom: 10px; color: var(--sky); }
 #records-table th, #records-table td { padding: 3px 2px; text-align: right; font-weight: normal; }
 #records-table td { font-size: clamp(10px, min(4vw, 3.6dvh), 16px); }
 #records-table th { color: var(--ice); font-size: 10px; }
 #records-table :is(th, td):nth-child(2) { text-align: left; white-space: pre; padding-left: 6px; }
+
+#records-table th:nth-child(1) { width: 7%; }
+#records-table th:nth-child(3) { width: 33%; }
+#records-table th:nth-child(4) { width: 18%; }
+.record-name-slot { display: block; width: 100%; }
+.record-name-slot bdi { display: inline-block; }
+#record-form { display: grid; gap: 8px; }
+#record-form label, #record-name-hint { color: var(--ice); font-size: 12px; }
+#record-input {
+  width: 100%; min-width: 0; min-height: 46px; padding: 8px 10px; border: 2px solid var(--sky);
+  border-radius: 0; background: #000; color: #fff; font: 18px/1.3 Cart, system-ui, sans-serif;
+  -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+}
+#record-input:focus { outline: 2px solid var(--ice); outline-offset: 2px; }
+#record-confirm-name { width: 100%; color: var(--ice); text-align: center; white-space: pre-wrap; overflow-wrap: anywhere; }
+#overlay[data-menu="records"] .panel { width: min(100%, 510px); }
+#records-menu { width: 100%; }

@@ -3,8 +3,10 @@
   --pair-width: 50%;
   --key-height: 48px;
   --cap-width: 48px;
-  --cap-height: 40px;
-  --mark-size: 20px;
+  --cap-height: 42px;
+  --mark-size: 22px;
+  --rotation-mark-width: 40px;
+  --cap-fill: rgb(11 28 44 / 60%);
   --mark-opacity: .82;
   --frame-opacity: .82;
   --ink-outline: drop-shadow(-1px 0 0 #000) drop-shadow(1px 0 0 #000)
@@ -24,15 +26,15 @@
   background: transparent; display: grid; place-items: center;
   outline-offset: -3px; color: white; touch-action: none;
 }
-.pad .direction img { width: var(--mark-size); pointer-events: none; opacity: var(--mark-opacity); filter: var(--ink-outline); }
+.pad .direction img { position: relative; z-index: 1; width: var(--mark-size); pointer-events: none; opacity: var(--mark-opacity); filter: var(--ink-outline); }
 .pad .left img { transform: scaleX(-1); }
 .pad .turn { font-size: 0; }
 .pad .turns::before {
   /* A shared arch has one arrowhead over each of the two touch zones. */
-  --rotate-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 16' shape-rendering='crispEdges'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M4 11V7H5V5H7V3H10V2H16V3H19V5H21V7H22V11'/%3E%3Cpath d='M1 9l3 2 2-3 2 7-7-2zM25 9l-3 2-2-3-2 7 7-2z'/%3E%3C/svg%3E");
+  --rotate-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 21' shape-rendering='crispEdges'%3E%3Cpath fill='none' stroke='black' stroke-width='2' d='M6 16V9H7V7H9V5H12V3H20V5H23V7H25V9H26V16'/%3E%3Cpath d='M1 9V20H12Z M31 9V20H20Z'/%3E%3C/svg%3E");
   content: ''; position: absolute; left: 50%; top: 50%;
-  width: 34px; height: 22px; transform: translate(-50%,-50%);
-  background: #fff; pointer-events: none; opacity: var(--mark-opacity);
+  width: var(--rotation-mark-width); height: 30px; transform: translate(-50%,-50%);
+  z-index: 1; background: #fff; pointer-events: none; opacity: var(--mark-opacity);
   -webkit-mask: var(--rotate-mark) center / contain no-repeat;
   mask: var(--rotate-mark) center / contain no-repeat;
 }
@@ -42,7 +44,7 @@
 }
 .pad > .down img { display: none; }
 .pad > .down::before {
-  content: ''; width: var(--mark-size); height: var(--mark-size); transform: rotate(90deg);
+  content: ''; position: relative; z-index: 1; width: var(--mark-size); height: var(--mark-size); transform: rotate(90deg);
   background: #fff; opacity: var(--mark-opacity);
   -webkit-mask: url("./assets/arrow.png") center / 100% no-repeat;
   mask: url("./assets/arrow.png") center / 100% no-repeat;
@@ -62,6 +64,7 @@
 .pad .key:is(.held, :active), .pad .turns:has(.turn:is(.held, :active)) {
   --mark-opacity: 1;
   --frame-opacity: 1;
+  --cap-fill: rgb(22 59 88 / 82%);
 }
 .pad .key:focus-visible { outline: 2px solid var(--sky); }
 @media (orientation: landscape) {
@@ -105,5 +108,12 @@
   box-sizing: border-box; width: var(--cap-width); height: var(--cap-height);
   transform: translate(-50%, -50%);
   border: 4px solid var(--sky); border-image: url("./assets/frame.png") 16 / 4px / 0 repeat;
-  pointer-events: none; opacity: var(--frame-opacity);
+  pointer-events: none; opacity: var(--frame-opacity); background: var(--cap-fill);
 }
+
+
+@media (orientation: portrait), (orientation: landscape) and (pointer: coarse) {
+  .pad .moves .key, .pad .turns { --cap-width: calc(100% - 8px); }
+  .pad .turns { --rotation-mark-width: 52px; }
+}
+.pad > .down { --cap-width: 46px; --cap-height: 76px; }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
   <meta name="theme-color" content="#000000">
   <title>Tetris · Tengen</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -21,14 +21,6 @@
     <section id="game" aria-label="Game" hidden>
       <div id="screen"><canvas id="picture" aria-label="Tetris playfield and statistics"></canvas></div>
       <div id="result-bar" hidden>
-        <div id="initials-entry" role="group" aria-label="Enter your initials" hidden>
-          <div class="letter-choice">
-            <button class="letter-step" data-letter="left" aria-label="Previous letter"><img class="back-arrow" src="assets/arrow.png" alt=""></button>
-            <span>INITIALS</span>
-            <button class="letter-step" data-letter="right" aria-label="Next letter"><img src="assets/arrow.png" alt=""></button>
-          </div>
-          <button class="action primary" data-letter="a" aria-label="Confirm letter">OK</button>
-        </div>
         <button id="after-game" class="action primary" hidden>PLAY AGAIN</button>
       </div>
       <div class="pad" aria-label="Game controls">
@@ -70,7 +62,26 @@
             </thead>
             <tbody id="record-rows"></tbody>
           </table>
+          <button class="action primary" id="records-replay" hidden>PLAY AGAIN</button>
           <button class="action primary" id="records-back">BACK</button>
+        </div>
+        <div class="menu" id="record-edit-menu" hidden>
+          <h1 id="record-edit-title" tabindex="-1">NEW RECORD</h1>
+          <form id="record-form">
+            <label for="record-input" id="record-label">NAME</label>
+            <input id="record-input" type="text" dir="auto" aria-describedby="record-name-hint"
+                   autocomplete="off" spellcheck="false" enterkeyhint="done" required>
+            <small id="record-name-hint">UP TO 10 CHARACTERS</small>
+            <button class="action primary" id="record-submit" disabled>SAVE RECORD</button>
+          </form>
+        </div>
+        <div class="menu" id="record-confirm-menu" hidden>
+          <h1 id="record-confirm-title">SAVE RECORD?</h1>
+          <p id="record-confirm-name"><bdi></bdi></p>
+          <div class="confirm-actions">
+            <button class="action primary" id="record-confirm-yes">YES</button>
+            <button class="action" id="record-confirm-no">NO</button>
+          </div>
         </div>
         <div class="menu" id="confirm-menu" hidden>
           <h1 id="confirm-title"></h1>

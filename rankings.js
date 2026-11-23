@@ -8,8 +8,16 @@ const alphabet = {
   ru: ' АБВГДЕЖЁИЙКЛМНЪПРСТУФХШЭЮЯ'
 };
 
-export function initialsText(record) {
+export function recordName(record) {
+  if (typeof record.name === 'string') return record.name;
   return record.initials.map(letter => alphabet[record.language][letter]).join('');
+}
+
+const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+
+export function limitRecordName(value) {
+  const characters = segmenter ? Array.from(segmenter.segment(value), part => part.segment) : Array.from(value);
+  return characters.slice(0, 10).join('');
 }
 
 export function loadRecords() {
@@ -20,11 +28,18 @@ export function loadRecords() {
   return [];
 }
 
-function validRecord(entry) {
+function validResult(entry) {
   return entry && (entry.language === 'ru' || entry.language === 'en') &&
     Number.isInteger(entry.score) && entry.score >= 0 && entry.score <= 999999 &&
-    Number.isInteger(entry.lines) && entry.lines >= 0 && entry.lines <= 999 &&
-    Array.isArray(entry.initials) && entry.initials.length === 3 &&
+    Number.isInteger(entry.lines) && entry.lines >= 0 && entry.lines <= 999;
+}
+
+function validRecord(entry) {
+  if (!validResult(entry)) return false;
+  if (typeof entry.name === 'string') {
+    return entry.name.trim().length > 0 && limitRecordName(entry.name) === entry.name;
+  }
+  return Array.isArray(entry.initials) && entry.initials.length === 3 &&
     entry.initials.every(letter => Number.isInteger(letter) && letter >= 0 && letter < 27);
 }
 
@@ -47,7 +62,11 @@ export function seedRanking(nes, records) {
     const entry = records[row];
     writeDigits(ram, scoreAddress + row * 6, entry?.score ?? 0, 6);
     writeDigits(ram, linesAddress + row * 3, entry?.lines ?? 0, 3);
-    for (let i = 0; i < 3; i++) ram[nameAddress + row * 3 + i] = entry?.initials[i] ?? 0;
+    // The native table still needs its three tile codes when scoring a run.
+    const letters = Array.from(entry ? recordName(entry).toUpperCase() : '');
+    for (let i = 0; i < 3; i++) {
+      ram[nameAddress + row * 3 + i] = entry ? Math.max(0, alphabet[nes.cartridgeLanguage ?? entry.language].indexOf(letters[i] ?? ' ')) : 0;
+    }
   }
 }
 
@@ -60,11 +79,9 @@ export function editingRecord(nes) {
   return null;
 }
 
-export function readConfirmedRecord(nes, row, language) {
+export function readRankedResult(nes, row, language) {
   const ram = nes.cpu.mem;
   const digits = (start, count) => Number(String.fromCharCode(...ram.subarray(start, start + count)));
-  const address = nameAddress + row * 3;
-  const initials = Array.from(ram.subarray(address, address + 3), letter => letter & 0x3f);
-  const record = { language, score: digits(scoreAddress + row * 6, 6), lines: digits(linesAddress + row * 3, 3), initials };
-  return validRecord(record) ? record : null;
+  const result = { language, score: digits(scoreAddress + row * 6, 6), lines: digits(linesAddress + row * 3, 3) };
+  return validResult(result) ? result : null;
 }

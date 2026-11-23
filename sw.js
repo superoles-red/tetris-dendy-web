@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = '387fe1106934d74758b0';
+const BUILD = '9e18bda6305617f3a543';
 const FILES = [
-  ["app.js", "sha256-2Z4CbMUZ5Ia3/+uwqHR/lXsKhp53htji3/v7bn7KmEY="],
+  ["app.js", "sha256-iKY7kznpx9Sn98ANbK0HJoVZUJ5V3vL7bDamsgTGuDQ="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
@@ -24,19 +24,19 @@ const FILES = [
   ["cartridge-audio.js", "sha256-fmwOEki5fgDHS8VUNpV53FechuGuaxWA2Xwv95VURE4="],
   ["cartridge.js", "sha256-GE4dL5S9G+aODLmrarnUWTpWqp0udFtzr55GTAVNw48="],
   ["compositor.js", "sha256-6MHl8cxMStyfuGlDkFhTCiV0giLgzA6CF/cmkWEbJ+0="],
-  ["controls.css", "sha256-hQYbI9xwQ36sRDdhJVgM+KJt07KrJ59JJCzGTJ5ZDO8="],
+  ["controls.css", "sha256-YPFYGJ4AsmBpkZZRctAKPEO7S1Gib7MfjvqglqLLTQQ="],
   ["controls.js", "sha256-XIWTtj5ItRHZGJpN9Vk9JdauSgCPU+mEWcWPn20Fvgw="],
   ["engine.js", "sha256-+FI2sSwXKsLuyW6A4CtYCsLZdxRuEMIJff2lfmY+JzM="],
   ["game-ru.nes", "sha256-M/BKw5U+fW092ICDzW+Q/93IBWg9IPqEB9jC2DWxHUY="],
   ["game.nes", "sha256-U5cKKyWBn5UUu38yp7Voo/S9vYdU2p57kUICDxq46mI="],
-  ["index.html", "sha256-4g2AxdRpiSlx+P0MTo6akGwIndkJvs8fwjI91XSWAr4="],
+  ["index.html", "sha256-Y/V/IvrsI3HhrGYCN+mH2kpp5xJjs3MqECx7APJQu20="],
   ["install.css", "sha256-Yrz9MBVuaVKoaGPN1CPgEjUy7pRSI9faEDBX8L1+Tdw="],
   ["install.js", "sha256-J9KYgYcCprIjMvus33Jrvg+weUDTbOQC3s760UF6YV8="],
-  ["locale.js", "sha256-l4bwgCfuHZ3O5JGQlEIauxCf792PVqVbikO0Y0M5hGo="],
+  ["locale.js", "sha256-HV4hf7keLtj+Y1hCIsUTptSdhuK3k0QOMFHEl+R/Ac4="],
   ["manifest.webmanifest", "sha256-5nKMTk9rEvbDWQ9HW7FOAbX+V8rNu/1zMXftY1ooG3Y="],
-  ["rankings.js", "sha256-O9LaFqlkjMtwcS75O7Lwf+s2Y0eYwizjwQUsIzRnv04="],
+  ["rankings.js", "sha256-UX+aRLk201j0Q0IazchA4NlJfkpwUvP4Zkbd7isVZn8="],
   ["saved-run.js", "sha256-tst1iw17LOmAuhKQ3lhtKGEC7n4upmP9Ba+vGw0/YxM="],
-  ["style.css", "sha256-16M7VL/s33dFWVNReoGgYzg7IxRr9SdPGCgUwPo7IRk="],
+  ["style.css", "sha256-d+Z2Bag++FqmbrEvC4fFhhs0UPqt6l4KoLkT9b/HTlY="],
   ["vendor/jsnes.js", "sha256-uIpOhApFnEU+rBKvQIrwLSzTCYdZfLlWyfLQ5pRXMPs="],
   ["viewport.js", "sha256-WbUSmMQWKacnoOhK9aqRfJ7L9GV99teYxVt1SoHpRow="]
 ];
