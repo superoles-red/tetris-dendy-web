@@ -2,6 +2,8 @@
 .pad {
   --pair-width: 50%;
   --key-height: 48px;
+  --control-inset: 4px;
+  --turn-inset: 0px;
   --pause-size: 52px;
   --cap-width: 48px;
   --cap-height: 42px;
@@ -21,7 +23,7 @@
   align-items: center; width: var(--pair-width); height: var(--key-height);
 }
 .pad .moves { left: 0; }
-.pad .turns { right: 0; }
+.pad .turns { right: var(--turn-inset); }
 .pad .key {
   width: 50%; height: 100%; min-width: 0; padding: 0; border: 0;
   background: transparent; display: grid; place-items: center;
@@ -52,7 +54,7 @@
   image-rendering: pixelated;
 }
 .pad .utility {
-  position: absolute; top: 4px; right: 4px;
+  position: absolute; top: 4px; right: var(--control-inset);
   width: var(--pause-size); height: var(--pause-size); border: 3px solid var(--sky);
   background: rgb(0 0 0 / 80%);
   box-shadow: inset 0 0 0 2px #134263, 1px 1px #000;
@@ -69,6 +71,8 @@
 }
 .pad .key:focus-visible { outline: 2px solid var(--sky); }
 @media (orientation: landscape) {
+  .pad { --pair-width: min(28%, 202px); --turn-inset: 6px; }
+  .pad .moves { left: 6px; }
   .pad > .down {
     --drop-target-height: clamp(76px, 28%, 116px);
     right: 0;
@@ -76,11 +80,6 @@
     width: clamp(104px, 18%, 144px);
     height: var(--drop-target-height);
   }
-}
-@media (orientation: landscape) and (pointer: coarse) {
-  .pad { --pair-width: min(28%, 202px); }
-  .pad .moves { left: 6px; }
-  .pad .turns { right: 6px; }
 }
 
 @media (orientation: portrait) {
@@ -120,9 +119,21 @@
 .pad > .down { --cap-width: 46px; --cap-height: 76px; }
 
 @media (orientation: landscape) {
-  .pad .moves .key, .pad .turns, .pad > .down {
-    --cap-width: var(--pause-size);
-    --cap-height: var(--pause-size);
+  .pad .moves .key { --cap-width: calc(100% - 8px); }
+  .pad .turns {
+    --cap-width: calc(100% - 4px);
+    --rotation-mark-width: 52px;
   }
-  .pad .turns { --rotation-mark-width: 42px; }
+  .pad > .down { --cap-width: 72px; --mark-size: 26px; }
+  .pad .turns::after, .pad > .down::after {
+    left: auto;
+    transform: translateY(-50%);
+  }
+  .pad .turns::after { right: calc(var(--control-inset) - var(--turn-inset)); }
+  .pad > .down::after { right: var(--control-inset); }
+  .pad > .down::before {
+    position: absolute; top: 50%;
+    right: calc(var(--control-inset) + (var(--cap-width) - var(--mark-size)) / 2);
+    transform: translateY(-50%) rotate(90deg);
+  }
 }
