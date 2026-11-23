@@ -136,7 +136,7 @@ export function bindInstall({ onContinue, canReload = () => true, language } = {
   reopen.lang = lang;
   reopen.textContent = text.open;
   reopen.hidden = true;
-  document.getElementById('home-menu').insertBefore(reopen, document.getElementById('records'));
+  document.getElementById('settings-install').append(reopen);
   dialog.querySelector('h1').textContent = text.title;
   install.textContent = text.install;
   play.textContent = text.play;

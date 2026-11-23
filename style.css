@@ -91,7 +91,7 @@ img, canvas, .panel, .turn { image-rendering: pixelated; }
   display: grid; place-items: center; gap: clamp(12px, 2.5dvh, 24px);
   padding: clamp(12px, 3vw, 30px); max-width: 100%;
 }
-.panel.cover { width: min(100%, 464px); }
+.panel.cover { position: relative; width: min(100%, 464px); }
 #art { display: block; width: min(100%, 42dvh); max-width: 384px; height: auto; object-fit: contain; }
 #art img { display: block; width: 100%; height: auto; }
 .menu { display: grid; justify-items: stretch; gap: 7px; width: min(100%, 286px); }
@@ -133,6 +133,26 @@ h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-
 }
 #overlay:not([data-menu="home"]) #home-support { display: none; }
 #overlay[data-menu="home"] { padding-top: 52px; }
+#home-settings {
+  position: absolute; z-index: 1; top: 5px; right: 5px;
+  width: 42px; height: 42px; padding: 0; display: grid; place-items: center;
+  color: var(--ice); border: 3px solid var(--sky); background: #080e18;
+  box-shadow: inset 0 0 0 1px #134263;
+}
+#overlay:not([data-menu="home"]) #home-settings { display: none; }
+#home-settings::before {
+  content: ''; width: 24px; height: 24px; background: currentColor;
+  clip-path: polygon(
+    10px 0, 14px 0, 14px 4px, 16px 4px, 16px 2px, 20px 2px, 20px 4px, 22px 4px, 22px 8px, 20px 8px, 20px 10px,
+    24px 10px, 24px 14px, 20px 14px, 20px 16px, 22px 16px, 22px 20px, 20px 20px, 20px 22px, 16px 22px, 16px 20px, 14px 20px,
+    14px 24px, 10px 24px, 10px 20px, 8px 20px, 8px 22px, 4px 22px, 4px 20px, 2px 20px, 2px 16px, 4px 16px, 4px 14px,
+    0 14px, 0 10px, 4px 10px, 4px 8px, 2px 8px, 2px 4px, 4px 4px, 4px 2px, 8px 2px, 8px 4px, 10px 4px
+  );
+}
+#home-settings::after { content: ''; position: absolute; width: 8px; height: 8px; background: #080e18; }
+#home-settings:hover, #home-settings:active { color: #fff; }
+#settings-install > button { width: 100%; }
+#settings-install:not(:has(> button:not([hidden]))) { display: none; }
 .language-choice {
   display: flex; align-items: center; justify-content: center; gap: 4px;
 }
@@ -147,7 +167,7 @@ h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-
 }
 @media (orientation: landscape) and (max-height: 360px) {
   .panel.dialog:has(.menu:not([hidden]) .choices) { width: min(100%, 580px); }
-  #setup-menu, #audio-menu { width: 100%; }
+  #setup-menu, #settings-menu { width: 100%; }
   .choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 12px; }
   .choice { grid-template-columns: 36px minmax(0, 1fr) 36px; }
   .choice output { font-size: clamp(11px, 2.5vw, 15px); }

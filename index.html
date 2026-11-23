@@ -40,13 +40,14 @@
     <section id="overlay" aria-label="Game menu" data-menu="home">
       <button id="home-support" disabled>SUPPORT</button>
       <div id="panel" class="panel cover">
+        <button id="home-settings" type="button" aria-label="Settings" title="Settings"></button>
         <picture id="art">
           <source media="(prefers-reduced-motion: no-preference)" srcset="assets/title-motion.png">
           <img src="assets/title.png" alt="Tengen presents Tetris" width="192" height="176" draggable="false">
         </picture>
         <div class="menu" id="home-menu">
           <button class="action primary" id="continue-run" hidden>CONTINUE</button>
-          <button class="action primary" id="play" disabled>PLAY</button>
+          <button class="action primary" id="play" disabled>NEW GAME</button>
           <button class="action" id="records">RECORDS</button>
         </div>
         <div class="menu" id="records-menu" hidden>
@@ -104,14 +105,15 @@
         <div class="menu" id="pause-menu" hidden>
           <h1>PAUSE</h1>
           <button class="action primary" id="resume">RESUME</button>
-          <button class="action" id="sound">SOUND</button>
+          <button class="action" id="pause-settings">SETTINGS</button>
           <button class="action" id="restart">RESTART</button>
           <button class="action" id="main-menu">MAIN MENU</button>
         </div>
-        <div class="menu" id="audio-menu" hidden>
-          <h1>SOUND</h1>
-          <div class="choices" id="audio-choices"></div>
-          <button class="action primary" id="audio-back">BACK</button>
+        <div class="menu" id="settings-menu" hidden>
+          <h1>SETTINGS</h1>
+          <div class="choices" id="settings-choices"></div>
+          <div id="settings-install"></div>
+          <button class="action primary" id="settings-back">BACK</button>
         </div>
         <p id="notice" role="status" hidden></p>
       </div>

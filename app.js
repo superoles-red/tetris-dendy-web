@@ -21,7 +21,7 @@ const resultBar = byId('result-bar');
 const recordInput = byId('record-input');
 const recordsTable = byId('records-table');
 const renderer = new Compositor(byId('picture'), resultBar);
-const menus = ['home', 'confirm', 'setup', 'pause', 'audio', 'records', 'record-edit', 'record-confirm'];
+const menus = ['home', 'confirm', 'setup', 'pause', 'settings', 'records', 'record-edit', 'record-confirm'];
 const SAVE_INTERVAL = 6000;
 const bindings = {
   ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down',
@@ -46,6 +46,7 @@ try {
 } catch { /* Storage is optional. */ }
 
 let view = 'home';
+let settingsReturn = 'home';
 let activeScene = 'boot';
 let runStart = null;
 let menuCheckpoint = null;
@@ -73,7 +74,7 @@ const installation = bindInstall({
   language: settings.language,
   canReload: () => view === 'home' && savePending === 0,
   onContinue: () => {
-    byId('play').focus({ preventScroll: true });
+    byId(view === 'settings' ? 'reopen-install' : 'play').focus({ preventScroll: true });
     unlockMenuMusic();
   }
 });
@@ -91,18 +92,24 @@ function unlockMenuMusic() {
   }
 }
 function isFrontMenu() {
-  return view === 'home' || view === 'setup' || view === 'confirm' || view === 'records';
+  return view === 'home' || view === 'setup' || view === 'confirm' || view === 'records' ||
+    (view === 'settings' && !isPauseSettings());
+}
+
+function isPauseSettings() {
+  return view === 'settings' && settingsReturn === 'pause';
 }
 
 function applyMix() {
   engine.setMix({ sound: settings.sound, music: settings.musicVolume, track: settings.track });
 }
 function settingsChanged(previewTrack) {
-  if (view === 'audio') {
+  if (isPauseSettings()) {
     applyMix();
     if (previewTrack) engine.previewMusic(settings.musicVolume);
+  } else if (view === 'settings') {
+    syncMenuMusic();
   }
-  if (view === 'setup') syncMenuMusic();
   try { localStorage.setItem('tengen-settings', JSON.stringify(settings)); } catch {}
   for (const refresh of refreshChoices) refresh();
 }
@@ -131,22 +138,23 @@ function releaseAll() {
 }
 
 function menu(name) {
-  if (view === 'audio') engine.stopPreview();
+  if (isPauseSettings()) engine.stopPreview();
   view = name;
   overlay.dataset.menu = name;
-  const inGame = name === 'pause' || name === 'audio';
+  const inGame = name === 'pause' || isPauseSettings();
   overlay.hidden = false;
   overlay.classList.toggle('in-game', inGame);
   game.hidden = !inGame;
   game.inert = true;
   byId('panel').className = name === 'home' ? 'panel cover' : 'panel dialog';
   byId('art').hidden = name !== 'home';
+  byId('settings-install').hidden = inGame;
   for (const id of menus) byId(id + '-menu').hidden = id !== name;
   notice.hidden = true;
   if (name === 'records') renderRecords();
   const first = {
     home: savedInfo ? 'continue-run' : 'play', confirm: 'confirm-no', setup: 'start',
-    pause: 'resume', audio: 'audio-back', records: 'records-back',
+    pause: 'resume', settings: 'settings-back', records: 'records-back',
     'record-edit': 'record-edit-title', 'record-confirm': 'record-confirm-no'
   }[name];
   byId(first).focus({ preventScroll: true });
@@ -201,7 +209,7 @@ function home() {
 
 function renderSavedMenu() {
   const t = translations[settings.language];
-  byId('play').textContent = savedInfo ? t.setup : t.play;
+  byId('play').textContent = t.setup;
   byId('play').classList.toggle('primary', !savedInfo);
   byId('continue-run').hidden = !savedInfo;
   byId('continue-run').textContent = t.continueRun;
@@ -494,9 +502,9 @@ function localize() {
   art.querySelector('img').src = title + '.png';
   art.querySelector('img').alt = t.titleArt;
   const text = {
-    '#play': t.play, '#setup-menu h1': t.setup, '#start': t.start, '#setup-back': t.back,
+    '#play': t.setup, '#setup-menu h1': t.setup, '#start': t.start, '#setup-back': t.back,
     '#pause-menu h1': t.pause, '#resume': t.resume, '#restart': t.restart, '#main-menu': t.mainMenu,
-    '#sound': t.sound, '#audio-menu h1': t.sound, '#audio-back': t.back, '#after-game': t.playAgain,
+    '#pause-settings': t.settings, '#settings-menu h1': t.settings, '#settings-back': t.back, '#after-game': t.playAgain,
     '#home-support': t.support,
     '#record-edit-title': t.newRecord, '#record-label': t.recordName,
     '#record-submit': t.saveRecord, '#game-over-next': t.showResults,
@@ -508,9 +516,10 @@ function localize() {
   };
   for (const [selector, value] of Object.entries(text)) document.querySelector(selector).textContent = value;
   byId('home-support').title = t.supportHint;
+  byId('home-settings').title = t.settings;
   const labels = {
     '#machine': t.pageTitle, '#game': t.game, '#overlay': t.gameMenu, '#picture': t.field,
-    '.pad': t.controls, '#pause-key': t.pause
+    '.pad': t.controls, '#pause-key': t.pause, '#home-settings': t.settings
   };
   for (const [selector, label] of Object.entries(labels)) document.querySelector(selector).setAttribute('aria-label', label);
   byId('pause-key').title = t.pause + ' · Esc';
@@ -574,7 +583,7 @@ function addLanguageSwitch(container) {
     button.onclick = () => {
       if (code === settings.language) return;
       engine.setLanguage(code);
-      if (view === 'audio') {
+      if (isPauseSettings()) {
         engine.renderPausedFrame((buffer, nes) => renderer.draw(buffer, activeScene, nes));
       }
       settings.language = code;
@@ -598,20 +607,11 @@ function addLanguageSwitch(container) {
 addChoice('setup', 'level', levels, () => settings.level, n => { settings.level = n; });
 addChoice('setup', 'rows', rows, () => settings.handicap, n => { settings.handicap = n; });
 const trackText = (track, t) => track === SHUFFLE ? t.shuffle : t.tracks[track];
-addChoice('setup', 'music', [...musicTracks, 0], () => settings.musicVolume ? settings.track : 0, n => {
-  if (n === 0) settings.musicVolume = 0;
-  else {
-    settings.track = n;
-    if (!settings.musicVolume) settings.musicVolume = 100;
-  }
-}, trackText);
-addLanguageSwitch('setup');
-
 const volumeText = (n, t) => n ? n + '%' : t.off;
-addChoice('audio', 'effects', volumes, () => settings.sound, n => { settings.sound = n; }, volumeText);
-addChoice('audio', 'music', volumes, () => settings.musicVolume, n => { settings.musicVolume = n; }, volumeText);
-addChoice('audio', 'track', musicTracks, () => settings.track, n => { settings.track = n; }, trackText);
-addLanguageSwitch('audio');
+addChoice('settings', 'effects', volumes, () => settings.sound, n => { settings.sound = n; }, volumeText);
+addChoice('settings', 'music', volumes, () => settings.musicVolume, n => { settings.musicVolume = n; }, volumeText);
+addChoice('settings', 'track', musicTracks, () => settings.track, n => { settings.track = n; }, trackText);
+addLanguageSwitch('settings');
 localize();
 
 byId('records').onclick = () => {
@@ -637,8 +637,17 @@ byId('start').onclick = begin;
 byId('resume').onclick = resume;
 byId('restart').onclick = restart;
 byId('main-menu').onclick = home;
-byId('sound').onclick = () => menu('audio');
-byId('audio-back').onclick = () => menu('pause');
+function openSettings(from) {
+  settingsReturn = from;
+  menu('settings');
+}
+function closeSettings() {
+  menu(settingsReturn);
+  byId(settingsReturn === 'pause' ? 'pause-settings' : 'home-settings').focus({ preventScroll: true });
+}
+byId('home-settings').onclick = () => openSettings('home');
+byId('pause-settings').onclick = () => openSettings('pause');
+byId('settings-back').onclick = closeSettings;
 afterGame.onclick = byId('records-replay').onclick = () => {
   releaseAll();
   engine.setPaused(true);
@@ -693,10 +702,10 @@ window.addEventListener('keydown', event => {
       byId('record-confirm-no').click();
       return;
     }
-    if (!['audio', 'pause', 'setup', 'confirm', 'records'].includes(view)) return;
+    if (!['settings', 'pause', 'setup', 'confirm', 'records'].includes(view)) return;
     event.preventDefault();
     if (!event.repeat) {
-      if (view === 'audio') menu('pause');
+      if (view === 'settings') closeSettings();
       else if (view === 'pause') resume();
       else home();
     }
@@ -713,12 +722,12 @@ window.addEventListener('pointerup', event => {
   else if (!installation.isOpen()) unlockMenuMusic();
 }, { capture: true });
 function suspend(save = true) {
-  if (view === 'audio') engine.stopPreview();
+  if (isPauseSettings()) engine.stopPreview();
   pause(save);
 }
 window.addEventListener('blur', suspend);
 function hidePage() {
-  if (!pageLeaving && ['game', 'pause', 'audio'].includes(view)) saveCurrentRun(true);
+  if (!pageLeaving && (view === 'game' || view === 'pause' || isPauseSettings())) saveCurrentRun(true);
   pageLeaving = true;
   engine.stopMenuMusic();
   suspend(false);

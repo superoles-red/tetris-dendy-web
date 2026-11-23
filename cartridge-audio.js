@@ -41,6 +41,7 @@ export class CartridgeMix {
     this.track = 1;
     this.trackChoice = 1;
     this.remainingTracks = [];
+    this.repeatedTrack = false;
     this.atLoopEnd = false;
   }
 
@@ -82,13 +83,17 @@ export class CartridgeMix {
   }
 
   capturePlaylist() {
-    return { choice: this.trackChoice, track: this.track, remaining: [...this.remainingTracks], atLoopEnd: this.atLoopEnd };
+    return {
+      choice: this.trackChoice, track: this.track, remaining: [...this.remainingTracks],
+      repeatedTrack: this.repeatedTrack, atLoopEnd: this.atLoopEnd
+    };
   }
 
   restorePlaylist(playlist) {
     this.trackChoice = playlist.choice;
     this.track = playlist.track;
     this.remainingTracks = [...playlist.remaining];
+    this.repeatedTrack = playlist.repeatedTrack === true;
   }
 
   set({ sound, music, track }, deferTrack) {
@@ -103,6 +108,7 @@ export class CartridgeMix {
   startMusic(choice, previous) {
     this.trackChoice = choice;
     this.remainingTracks = [];
+    this.repeatedTrack = false;
     this.atLoopEnd = false;
     this.track = choice === SHUFFLE ? this.nextTrack(previous) : choice;
     return this.track;
@@ -141,9 +147,16 @@ export class CartridgeMix {
       looped ||= pointer === start;
     }
     if (this.atLoopEnd && looped) {
-      this.track = this.nextTrack(this.track);
       this.atLoopEnd = false;
-      this.requestTrack(true);
+      if (this.repeatedTrack) {
+        this.repeatedTrack = false;
+        this.track = this.nextTrack(this.track);
+        this.requestTrack(true);
+      } else {
+        // Replay the whole tune, including the intro before its native loop.
+        this.repeatedTrack = true;
+        this.pendingTrack = true;
+      }
     } else {
       this.atLoopEnd = ending;
     }
