@@ -1,6 +1,6 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = '76b78925de589e8a536f';
+const BUILD = 'daff001589cc4da70f17';
 const FILES = [
   ["app.js", "sha256-xrVi5UYhDra+ctIsusP+FYBHrwLkOFBNlnRVX07ibQE="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
@@ -24,12 +24,12 @@ const FILES = [
   ["cartridge-audio.js", "sha256-fmwOEki5fgDHS8VUNpV53FechuGuaxWA2Xwv95VURE4="],
   ["cartridge.js", "sha256-GE4dL5S9G+aODLmrarnUWTpWqp0udFtzr55GTAVNw48="],
   ["compositor.js", "sha256-6MHl8cxMStyfuGlDkFhTCiV0giLgzA6CF/cmkWEbJ+0="],
-  ["controls.css", "sha256-ox9fMIhPQaTYFIOjrCP5vW1mL9sylFN15hVOjUTs4KM="],
+  ["controls.css", "sha256-hQYbI9xwQ36sRDdhJVgM+KJt07KrJ59JJCzGTJ5ZDO8="],
   ["controls.js", "sha256-XIWTtj5ItRHZGJpN9Vk9JdauSgCPU+mEWcWPn20Fvgw="],
   ["engine.js", "sha256-+FI2sSwXKsLuyW6A4CtYCsLZdxRuEMIJff2lfmY+JzM="],
   ["game-ru.nes", "sha256-M/BKw5U+fW092ICDzW+Q/93IBWg9IPqEB9jC2DWxHUY="],
   ["game.nes", "sha256-U5cKKyWBn5UUu38yp7Voo/S9vYdU2p57kUICDxq46mI="],
-  ["index.html", "sha256-CNAwFtHTYrBQFTL7cm4MclDhHMfxREcbbYtaJVMufXA="],
+  ["index.html", "sha256-cEv8BGTBJvTfkjGSW0uREFKrbZHCH+pIyzYL25vyK7M="],
   ["install.css", "sha256-Yrz9MBVuaVKoaGPN1CPgEjUy7pRSI9faEDBX8L1+Tdw="],
   ["install.js", "sha256-DTK3Cw1MfqEE4GN6H7rAfn5v2G86ZrHi9kIMDpNunP0="],
   ["locale.js", "sha256-7iOjcSVvQtA9pjWVt3DtILGmGHZ8X8Z5FVOFhb+3JOQ="],
