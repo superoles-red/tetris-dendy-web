@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>Tetris · Tengen</title>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -52,7 +52,20 @@
           <img src="assets/title.png" alt="Tengen presents Tetris" width="192" height="176" draggable="false">
         </picture>
         <div class="menu" id="home-menu">
+          <button class="action primary" id="continue-run" hidden>CONTINUE</button>
           <button class="action primary" id="play" disabled>PLAY</button>
+        </div>
+        <div class="menu" id="confirm-menu" hidden>
+          <h1 id="confirm-title"></h1>
+          <div class="saved-preview">
+            <img id="saved-thumbnail" alt="" hidden>
+            <span id="saved-level"></span>
+          </div>
+          <p id="confirm-note" hidden></p>
+          <div class="confirm-actions">
+            <button class="action" id="confirm-no">NO</button>
+            <button class="action primary" id="confirm-yes">YES</button>
+          </div>
         </div>
         <div class="menu" id="setup-menu" hidden>
           <h1>NEW GAME</h1>

@@ -91,3 +91,16 @@
     height: clamp(88px, 26%, 200px);
   }
 }
+
+
+/* The cartridge frame marks the buttons. Hit zones extend beyond the frame. */
+.pad .moves .key { position: relative; }
+.pad .moves .key::after, .pad .turns::after, .pad > .down::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 42px; height: 38px; transform: translate(-50%, -50%);
+  border: 4px solid var(--sky); border-image: url("./assets/frame.png") 16 / 4px / 0 repeat;
+  pointer-events: none; opacity: .8;
+}
+.pad .turns::after { width: 80px; height: 40px; }
+.pad > .down::after { width: 49px; height: 49px; opacity: 1; }
+.pad .moves .key.held::after, .pad .moves .key:active::after { opacity: 1; }

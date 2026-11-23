@@ -6,6 +6,7 @@ import { bindControls } from './controls.js';
 import { bindInstall } from './install.js';
 import { translations, preferredLanguage } from './locale.js';
 import { bindPhoneInsets } from './viewport.js';
+import { openSavedRun } from './saved-run.js';
 
 bindPhoneInsets();
 
@@ -17,7 +18,8 @@ const afterGame = byId('after-game');
 const resultBar = byId('result-bar');
 const initialsEntry = byId('initials-entry');
 const renderer = new Compositor(byId('picture'), resultBar);
-const menus = ['home', 'setup', 'pause', 'audio'];
+const menus = ['home', 'confirm', 'setup', 'pause', 'audio'];
+const SAVE_INTERVAL = 6000;
 const bindings = {
   ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down',
   ArrowUp: 'a', KeyX: 'a', KeyZ: 'b'
@@ -46,16 +48,44 @@ let runStart = null;
 let menuCheckpoint = null;
 let observedEnd = false;
 let loaded = false;
+let menuMusicUnlocked = false;
+let runStore = null;
+let activeRun = null;
+let savedInfo = null;
+let confirmIntent = null;
+let nextSaveAt = 0;
+let savePending = 0;
+let saveRevision = 0;
+const runId = () => globalThis.crypto?.randomUUID?.() ?? Date.now() + '-' + Math.random();
+const owner = runId();
 const heldInputs = new Map();
 const padButtons = new Map([...document.querySelectorAll('[data-button]')].map(node => [node.dataset.button, node]));
 const engine = new Engine({ onFrame, onError: fail });
 const controls = bindControls({ pad: document.querySelector('.pad'), setInput, pause });
 const installation = bindInstall({
   language: settings.language,
-  canReload: () => view === 'home',
-  onContinue: () => byId('play').focus({ preventScroll: true })
+  canReload: () => view === 'home' && savePending === 0,
+  onContinue: () => {
+    byId('play').focus({ preventScroll: true });
+    unlockMenuMusic();
+  }
 });
 const refreshChoices = [];
+
+function syncMenuMusic() {
+  if (menuMusicUnlocked && !document.hidden && isFrontMenu()) {
+    engine.playMenuMusic(settings.musicVolume);
+  }
+}
+function unlockMenuMusic() {
+  if (isFrontMenu()) {
+    menuMusicUnlocked = true;
+    syncMenuMusic();
+  }
+}
+function isFrontMenu() {
+  return view === 'home' || view === 'setup' || view === 'confirm';
+}
 
 function applyMix() {
   engine.setMix({ sound: settings.sound, music: settings.musicVolume, track: settings.track });
@@ -65,6 +95,7 @@ function settingsChanged(previewTrack) {
     applyMix();
     if (previewTrack) engine.previewMusic(settings.musicVolume);
   }
+  if (view === 'setup') syncMenuMusic();
   try { localStorage.setItem('tengen-settings', JSON.stringify(settings)); } catch {}
   for (const refresh of refreshChoices) refresh();
 }
@@ -105,14 +136,16 @@ function menu(name) {
   byId('art').hidden = name !== 'home';
   for (const id of menus) byId(id + '-menu').hidden = id !== name;
   notice.hidden = true;
-  const first = { home: 'play', setup: 'start', pause: 'resume', audio: 'audio-back' }[name];
+  const first = { home: savedInfo ? 'continue-run' : 'play', confirm: 'confirm-no', setup: 'start', pause: 'resume', audio: 'audio-back' }[name];
   byId(first).focus({ preventScroll: true });
   if (name === 'home') installation.checkReady();
+  syncMenuMusic();
 }
 function pause() {
   if (view !== 'game') return;
   releaseAll();
   engine.setPaused(true);
+  saveCurrentRun();
   menu('pause');
 }
 function resume() {
@@ -125,13 +158,14 @@ function resume() {
   engine.start();
   if (document.hidden) pause();
 }
-function enterRun() {
+function enterRun(scene = 'play') {
+  nextSaveAt = 0;
   observedEnd = false;
   afterGame.hidden = true;
   resultBar.hidden = true;
   game.classList.remove('scores');
-  activeScene = 'play';
-  game.dataset.scene = activeScene;
+  activeScene = scene;
+  game.dataset.scene = scene;
   applyMix();
   engine.setMuted(false);
   resume();
@@ -146,7 +180,103 @@ function home() {
   releaseAll();
   engine.setPaused(true);
   runStart = null;
+  activeRun = null;
   menu('home');
+}
+
+function renderSavedMenu() {
+  const t = translations[settings.language];
+  byId('play').textContent = savedInfo ? t.setup : t.play;
+  byId('play').classList.toggle('primary', !savedInfo);
+  byId('continue-run').hidden = !savedInfo;
+  byId('continue-run').textContent = t.continueRun;
+  byId('confirm-title').textContent = confirmIntent === 'replace' ? t.replacePrompt : t.resumePrompt;
+  byId('confirm-note').textContent = t.replaceNote;
+  byId('confirm-note').hidden = confirmIntent !== 'replace';
+  byId('confirm-no').textContent = t.no;
+  byId('confirm-yes').textContent = t.yes;
+  byId('saved-level').textContent = savedInfo ? t.level + ' ' + savedInfo.level : '';
+  const thumbnail = byId('saved-thumbnail');
+  thumbnail.hidden = !savedInfo?.thumbnail;
+  if (savedInfo?.thumbnail) thumbnail.src = savedInfo.thumbnail;
+  else thumbnail.removeAttribute('src');
+}
+
+function observeSave(operation) {
+  const revision = ++saveRevision;
+  savePending++;
+  return operation.then(info => {
+    if (revision === saveRevision) {
+      savedInfo = info;
+      renderSavedMenu();
+    }
+  }).finally(() => {
+    savePending--;
+    if (view === 'home') installation.checkReady();
+  });
+}
+
+function saveCurrentRun() {
+  const run = activeRun;
+  if (!runStore || !run || !runStart) return;
+  const nes = engine.nes;
+  if (!['play', 'dance'].includes(readScene(nes))) return;
+  // Read the actual level shown by the cartridge, including bonus advances.
+  const level = nes.ppu.vramMem.subarray(0x20cb, 0x20cd);
+  const digits = Array.from(level).filter(tile => tile >= 0x30 && tile <= 0x39);
+  const info = {
+    id: run.id, owner,
+    level: digits.length ? Number(String.fromCharCode(...digits)) : settings.level,
+    thumbnail: renderer.thumbnail()
+  };
+  const initial = run.fresh ? runStart : undefined;
+  const operation = runStore.save(info, engine.captureProgress(), initial);
+  run.fresh = false;
+  nextSaveAt = performance.now() + SAVE_INTERVAL;
+  observeSave(operation).catch(() => {
+    if (initial && activeRun === run) run.fresh = true;
+  });
+}
+
+function finishCurrentRun() {
+  if (!runStore || !activeRun) return;
+  const id = activeRun.id;
+  activeRun = null;
+  if (savedInfo?.id === id) {
+    savedInfo = null;
+    renderSavedMenu();
+  }
+  observeSave(runStore.finish(id, owner)).catch(() => {});
+}
+
+function confirmRun(intent) {
+  confirmIntent = intent;
+  renderSavedMenu();
+  menu('confirm');
+}
+
+async function continueSavedRun() {
+  if (!savedInfo || !runStore) return;
+  const yes = byId('confirm-yes');
+  yes.disabled = true;
+  try {
+    const slot = await runStore.take(savedInfo.id, owner);
+    if (view !== 'confirm' || confirmIntent !== 'continue') return;
+    if (!slot) {
+      await observeSave(runStore.read());
+      menu('home');
+      return;
+    }
+    engine.setPaused(true);
+    engine.restoreProgress(slot.checkpoint);
+    runStart = slot.initial;
+    activeRun = { id: slot.info.id, fresh: false };
+    enterRun(readScene(engine.nes));
+  } catch {
+    menu('home');
+  } finally {
+    yes.disabled = false;
+  }
 }
 
 function showMessage(message) {
@@ -194,6 +324,7 @@ async function begin() {
         if (advance(engine.nes)) {
           applyMix();
           runStart = engine.captureStart();
+          activeRun = { id: runId(), fresh: true };
           enterRun();
           return;
         }
@@ -216,7 +347,10 @@ function onFrame(buffer, nes, present = true) {
     activeScene = scene;
     game.dataset.scene = scene;
   }
-  if (scene === 'gameover' || scene === 'scores') observedEnd = true;
+  if (!observedEnd && (scene === 'gameover' || scene === 'scores')) {
+    observedEnd = true;
+    finishCurrentRun();
+  }
   if (observedEnd && ['title','demo','mode','level','music','handicap'].includes(scene)) {
     home();
     return;
@@ -231,7 +365,15 @@ function onFrame(buffer, nes, present = true) {
     if (afterGame.hidden !== editing) afterGame.hidden = editing;
     if (initialsEntry.hidden === editing) initialsEntry.hidden = !editing;
   }
-  if (present) renderer.draw(buffer, scene, nes);
+  if (present) {
+    renderer.draw(buffer, scene, nes);
+    if (runStore && activeRun && ['play', 'dance'].includes(scene) && performance.now() >= nextSaveAt) {
+      nextSaveAt = performance.now() + SAVE_INTERVAL;
+      // The PPU calls onFrame before the CPU finishes the current frame.
+      const run = activeRun;
+      setTimeout(() => { if (activeRun === run) saveCurrentRun(); }, 0);
+    }
+  }
 }
 
 function localize() {
@@ -265,6 +407,7 @@ function localize() {
     node.title = t[key] + ' · ' + shortcuts[key];
   }
   installation.setLanguage(lang);
+  renderSavedMenu();
 }
 
 function addChoice(container, key, values, read, change, format = String) {
@@ -358,7 +501,13 @@ addChoice('audio', 'track', musicTracks, () => settings.track, n => { settings.t
 addLanguageSwitch('audio');
 localize();
 
-byId('play').onclick = () => menu('setup');
+byId('play').onclick = () => savedInfo ? confirmRun('replace') : menu('setup');
+byId('continue-run').onclick = () => confirmRun('continue');
+byId('confirm-no').onclick = () => menu('home');
+byId('confirm-yes').onclick = () => {
+  if (confirmIntent === 'replace') menu('setup');
+  else continueSavedRun();
+};
 byId('setup-back').onclick = home;
 byId('start').onclick = begin;
 byId('resume').onclick = resume;
@@ -384,12 +533,16 @@ byId('screen').addEventListener('click', () => {
   if (view === 'game' && activeScene === 'dance') tapCartridge('a');
 });
 
-for (const type of ['contextmenu', 'selectstart', 'dragstart']) {
-  document.addEventListener(type, event => event.preventDefault());
+for (const type of ['contextmenu', 'selectstart', 'dragstart', 'dblclick', 'gesturestart', 'gesturechange']) {
+  document.addEventListener(type, event => event.preventDefault(), { passive: false });
 }
+document.addEventListener('wheel', event => {
+  if (event.ctrlKey) event.preventDefault();
+}, { passive: false });
 window.addEventListener('keydown', event => {
   if (installation.isOpen() || event.ctrlKey || event.metaKey || event.altKey) return;
   const code = event.code;
+  if (event.isTrusted) unlockMenuMusic();
   if (view === 'game') {
     if ((code === 'Enter' || code === 'Space') && activeScene === 'scores' && !initialsEntry.hidden) {
       if (event.target.closest('[data-letter]')) return;
@@ -406,7 +559,7 @@ window.addEventListener('keydown', event => {
       }
     }
   } else if (code === 'Escape' || (code === 'KeyP' && view === 'pause')) {
-    if (!['audio', 'pause', 'setup'].includes(view)) return;
+    if (!['audio', 'pause', 'setup', 'confirm'].includes(view)) return;
     event.preventDefault();
     if (!event.repeat) {
       if (view === 'audio') menu('pause');
@@ -415,13 +568,15 @@ window.addEventListener('keydown', event => {
     }
   } else if (view === 'home' && code === 'Enter' && !event.target.closest('button')) {
     event.preventDefault();
-    if (!event.repeat && loaded) menu('setup');
+    if (!event.repeat && loaded) byId(savedInfo ? 'continue-run' : 'play').click();
   }
 });
 window.addEventListener('keyup', event => setInput(event.code, bindings[event.code], false));
 window.addEventListener('pointerup', event => {
   // On iOS a touch can grant audio activation on release, after pointerdown.
-  if (view === 'game' && event.isTrusted) engine.wakeAudio();
+  if (!event.isTrusted) return;
+  if (view === 'game') engine.wakeAudio();
+  else if (!installation.isOpen()) unlockMenuMusic();
 }, { capture: true });
 function suspend() {
   if (view === 'audio') engine.stopPreview();
@@ -429,11 +584,15 @@ function suspend() {
 }
 window.addEventListener('blur', suspend);
 function hidePage() {
+  if (view === 'pause' || view === 'audio') saveCurrentRun();
+  engine.stopMenuMusic();
   suspend();
   engine.setAudioPageActive(false);
 }
 function showPage() {
-  if (!document.hidden) engine.setAudioPageActive(true);
+  if (document.hidden) return;
+  engine.setAudioPageActive(true);
+  syncMenuMusic();
 }
 window.addEventListener('pagehide', hidePage);
 window.addEventListener('pageshow', showPage);
@@ -444,8 +603,11 @@ document.addEventListener('visibilitychange', () => {
 });
 
 try {
-  await engine.load(settings.language);
+  const [, store] = await Promise.all([engine.load(settings.language), openSavedRun()]);
+  runStore = store;
+  if (runStore) await observeSave(runStore.read()).catch(() => {});
   loaded = true;
   byId('play').disabled = false;
   byId('start').disabled = false;
+  syncMenuMusic();
 } catch (error) { fail(error); }

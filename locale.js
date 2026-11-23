@@ -2,7 +2,8 @@
 export const translations = {
   en: {
     pageTitle: 'Tetris · Tengen', titleArt: 'Tengen presents Tetris',
-    play: 'PLAY', setup: 'NEW GAME', start: 'START', back: 'BACK',
+    play: 'PLAY', continueRun: 'CONTINUE', resumePrompt: 'CONTINUE GAME?', replacePrompt: 'START A NEW GAME?',
+    replaceNote: 'Starting a new game will replace this saved game.', yes: 'YES', no: 'NO', setup: 'NEW GAME', start: 'START', back: 'BACK',
     pause: 'PAUSE', resume: 'RESUME', sound: 'SOUND', restart: 'RESTART',
     mainMenu: 'MAIN MENU', playAgain: 'PLAY AGAIN', initials: 'INITIALS',
     support: 'SUPPORT', supportHint: 'Support link coming later',
@@ -17,7 +18,8 @@ export const translations = {
   },
   ru: {
     pageTitle: 'Тетрис · Тенген', titleArt: 'Тенген представляет Тетрис',
-    play: 'ИГРАТЬ', setup: 'НОВАЯ ИГРА', start: 'СТАРТ', back: 'НАЗАД',
+    play: 'ИГРАТЬ', continueRun: 'ПРОДОЛЖИТЬ', resumePrompt: 'ПРОДОЛЖИТЬ ИГРУ?', replacePrompt: 'НАЧАТЬ НОВУЮ ИГРУ?',
+    replaceNote: 'Когда вы начнёте новую игру, она заменит эту сохранённую партию.', yes: 'ДА', no: 'НЕТ', setup: 'НОВАЯ ИГРА', start: 'СТАРТ', back: 'НАЗАД',
     pause: 'ПАУЗА', resume: 'ПРОДОЛЖИТЬ', sound: 'ЗВУК', restart: 'ЗАНОВО',
     mainMenu: 'ГЛАВНОЕ МЕНЮ', playAgain: 'ИГРАТЬ СНОВА', initials: 'ИНИЦИАЛЫ',
     support: 'ПОДДЕРЖАТЬ', supportHint: 'Ссылку для поддержки добавим позже',

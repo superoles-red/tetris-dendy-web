@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = 'e2e36092876e8742624f';
+const BUILD = 'd8d54575357096a512a7';
 const FILES = [
-  ["app.js", "sha256-XTqILqDdrzJCCjWRsQeF9AgVhc72DCd1tM2PaVzccxc="],
+  ["app.js", "sha256-pNhMqqxG+j5QNjVroVWFDXiGRY7p+phE+XJp9goYWgU="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
@@ -21,20 +21,21 @@ const FILES = [
   ["assets/title.png", "sha256-xuEa7YZnurYAXyVBgFOpD7Gc9mnHp/BztVwQcctRJWw="],
   ["assets/well.png", "sha256-J4sDuw/Zrpe1+fgRJYiR7BzCmgj7L+V++oP0f1ZTNFA="],
   ["audio-output.js", "sha256-6InF/O0z1Tz8QZSYtWlElH31ZQXY1Q67/qX4SQJ9BZg="],
-  ["cartridge-audio.js", "sha256-uVLbEeOeptdXCP7JrVx/pJHZUHd8ZQ+I2+9K90qjweI="],
+  ["cartridge-audio.js", "sha256-fmwOEki5fgDHS8VUNpV53FechuGuaxWA2Xwv95VURE4="],
   ["cartridge.js", "sha256-GE4dL5S9G+aODLmrarnUWTpWqp0udFtzr55GTAVNw48="],
-  ["compositor.js", "sha256-XqP5hbuy9M3sOX+C6YjKIzFoPj5J8Y9TO5i7XDHwlbU="],
-  ["controls.css", "sha256-XTw/2H88T6KPI52wr35d7Dayq3xjAifsbMMr4JaH4es="],
+  ["compositor.js", "sha256-6MHl8cxMStyfuGlDkFhTCiV0giLgzA6CF/cmkWEbJ+0="],
+  ["controls.css", "sha256-ox9fMIhPQaTYFIOjrCP5vW1mL9sylFN15hVOjUTs4KM="],
   ["controls.js", "sha256-XIWTtj5ItRHZGJpN9Vk9JdauSgCPU+mEWcWPn20Fvgw="],
-  ["engine.js", "sha256-PEQJ1yXNQDsh9DwxTq1tCv6Jzcf5exNrsBywZCoFyAE="],
+  ["engine.js", "sha256-+FI2sSwXKsLuyW6A4CtYCsLZdxRuEMIJff2lfmY+JzM="],
   ["game-ru.nes", "sha256-M/BKw5U+fW092ICDzW+Q/93IBWg9IPqEB9jC2DWxHUY="],
   ["game.nes", "sha256-U5cKKyWBn5UUu38yp7Voo/S9vYdU2p57kUICDxq46mI="],
-  ["index.html", "sha256-8OcuW5qpH13D5/M5z86wW58j2uaX36xJ6jVt28B0KkA="],
-  ["install.css", "sha256-4ZF2+KlnmA/QFDQiVxEx8cIbW+IkQDkbhsiBHTtD5M8="],
+  ["index.html", "sha256-CNAwFtHTYrBQFTL7cm4MclDhHMfxREcbbYtaJVMufXA="],
+  ["install.css", "sha256-Yrz9MBVuaVKoaGPN1CPgEjUy7pRSI9faEDBX8L1+Tdw="],
   ["install.js", "sha256-DTK3Cw1MfqEE4GN6H7rAfn5v2G86ZrHi9kIMDpNunP0="],
-  ["locale.js", "sha256-RrvGJjpT+SqrpVT8MNamhTg7zd7pToCh8MK6A2ojIq4="],
+  ["locale.js", "sha256-7iOjcSVvQtA9pjWVt3DtILGmGHZ8X8Z5FVOFhb+3JOQ="],
   ["manifest.webmanifest", "sha256-5nKMTk9rEvbDWQ9HW7FOAbX+V8rNu/1zMXftY1ooG3Y="],
-  ["style.css", "sha256-gS0H5PLadeDsHCHmKsEUc/ay7wFbOLn2Rc8MnfOBMmU="],
+  ["saved-run.js", "sha256-EyYh2AyFV1QNat90D88TvI8ARR9GIEbQKOMmUpwfpM4="],
+  ["style.css", "sha256-Lj/Y7oPbxnHS1uvtpiatTm4oh6XUaVDpgfsSPoeVX90="],
   ["vendor/jsnes.js", "sha256-uIpOhApFnEU+rBKvQIrwLSzTCYdZfLlWyfLQ5pRXMPs="],
   ["viewport.js", "sha256-WbUSmMQWKacnoOhK9aqRfJ7L9GV99teYxVt1SoHpRow="]
 ];

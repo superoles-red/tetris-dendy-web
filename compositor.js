@@ -228,9 +228,8 @@ export class Compositor {
 
   well(left, top, k) {
     const x = left + 4 * k, y = top + 4 * k;
-    if (this.frame.naturalWidth) {
-      this.ctx.drawImage(this.frame, round(left), round(top), round(WELL_W * k), round(WELL_H * k));
-    }
+    this.wellRect = [round(left), round(top), round(WELL_W * k), round(WELL_H * k)];
+    if (this.frame.naturalWidth) this.ctx.drawImage(this.frame, ...this.wellRect);
     if (this.scene === 'dance') {
       this.dance(x, y, k);
       return;
@@ -238,6 +237,17 @@ export class Compositor {
     this.blit([0, 240, 80, 16], x, y, 80 * k, 16 * k);
     this.blit([16, 64, 80, 160], x, y + 16 * k, 80 * k, 160 * k);
     if (this.scene === 'pause') this.fit([96, 64, 64, 16], x + 40 * k, y + 70 * k, k);
+  }
+
+  thumbnail() {
+    if (!this.wellRect || this.wellRect[2] < 1 || this.wellRect[3] < 1) return null;
+    const preview = document.createElement('canvas');
+    preview.width = WELL_W;
+    preview.height = WELL_H;
+    const ctx = preview.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(this.canvas, ...this.wellRect, 0, 0, WELL_W, WELL_H);
+    return preview.toDataURL('image/png');
   }
 
   dance(x, y, k) {

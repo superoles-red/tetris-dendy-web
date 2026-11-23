@@ -4,7 +4,7 @@
          calc(var(--device-safe-bottom) + 8px) calc(var(--device-safe-left) + 8px);
   max-width: min(92vw, 372px, calc(100vw - var(--device-safe-left) - var(--device-safe-right) - 16px));
   max-height: min(92dvh, calc(100dvh - var(--ui-safe-top) - var(--device-safe-bottom) - 16px));
-  overflow-y: auto;
+  overflow-y: auto; touch-action: pan-y;
   padding: 12px clamp(12px, 4vw, 24px) 16px; text-align: center;
   border: 12px solid var(--sky); border-image: url('./assets/frame.png') 16 / 12px / 0 repeat;
   color: #fff; background: #000; z-index: 12;

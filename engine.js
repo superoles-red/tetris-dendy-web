@@ -78,6 +78,7 @@ export class Engine {
   setPaused(value) {
     this.paused = Boolean(value);
     if (this.paused) {
+      this.playingMenu = false;
       if (this.request !== null) cancelAnimationFrame(this.request);
       this.request = null;
       this.clearButtons();
@@ -87,6 +88,34 @@ export class Engine {
       this.accumulator = 0;
       this.request = requestAnimationFrame(this.tick);
     }
+  }
+
+  playMenuMusic(volume) {
+    this.menuVolume = volume / 100;
+    if (!this.menuVolume) {
+      this.stopMenuMusic();
+      return;
+    }
+    if (!this.cartridges) return;
+    if (!this.menuConsole) {
+      // The title theme is identical on both cartridges. Keep its APU
+      // separate so it cannot advance the saved game or restart its music.
+      this.menuConsole = new globalThis.jsnes.NES({
+        sampleRate: SAMPLE_RATE,
+        onAudioSample: (left, right) => {
+          if (this.emitAudio) this.audio.write(left * this.menuVolume, right * this.menuVolume);
+        }
+      });
+      this.menuConsole.loadROM(this.cartridges.en);
+    }
+    this.audio.wake();
+    if (this.playingMenu) return;
+    this.playingMenu = true;
+    this.start();
+  }
+
+  stopMenuMusic() {
+    if (this.playingMenu) this.setPaused(true);
   }
 
   setButton(name, pressed) {
@@ -127,6 +156,12 @@ export class Engine {
         this.present = this.accumulator < FRAME_MS;
         // After a long stall, keep only the tail of the catch-up audio.
         this.emitAudio = !stalled || this.accumulator < AUDIO_CATCHUP_MS;
+        if (this.playingMenu) {
+          this.menuConsole.frame();
+          // The cartridge switches to its demo after the title theme ends.
+          if (this.menuConsole.cpu.mem[0x29] === 0xfb) this.menuConsole.reloadROM();
+          continue;
+        }
         this.mix.flushTrack();
         this.nes.frame();
         this.mix.advancePlaylist();
@@ -179,6 +214,9 @@ export class Engine {
     this.clearButtons();
     this.audio.clear();
     this.nes.fromJSON(cloneState(state.console));
+    // A save can be taken while a thumb is down. Start the resumed run
+    // with fresh inputs rather than inheriting the captured controller state.
+    for (const button of Object.values(BUTTONS)) this.nes.buttonUp(1, button);
     const source = state.language ?? 'en';
     if (source !== this.language) remapCartridge(this.nes, this.cartridges[source], this.cartridges[this.language]);
     this.nes.cartridgeLanguage = this.language;
@@ -188,6 +226,16 @@ export class Engine {
     this.totalFrames = 0;
     this.lastTime = null;
     this.accumulator = 0;
+  }
+
+  captureProgress() {
+    return { ...this.captureStart(), playlist: this.mix.capturePlaylist() };
+  }
+
+  restoreProgress(state) {
+    this.mix.restorePlaylist(state.playlist);
+    this.restoreStart(state);
+    this.mix.atLoopEnd = state.playlist.atLoopEnd;
   }
 
   setMix(options) { this.mix.set(options, this.paused); }

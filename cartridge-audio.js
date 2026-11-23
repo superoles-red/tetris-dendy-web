@@ -81,6 +81,16 @@ export class CartridgeMix {
     return { pendingTrack: this.pendingTrack, effectMask: this.effectMask, filter: [...this.filter], filterFor: this.filterFor };
   }
 
+  capturePlaylist() {
+    return { choice: this.trackChoice, track: this.track, remaining: [...this.remainingTracks], atLoopEnd: this.atLoopEnd };
+  }
+
+  restorePlaylist(playlist) {
+    this.trackChoice = playlist.choice;
+    this.track = playlist.track;
+    this.remainingTracks = [...playlist.remaining];
+  }
+
   set({ sound, music, track }, deferTrack) {
     this.sound = percent(sound, this.sound);
     this.music = percent(music, this.music);

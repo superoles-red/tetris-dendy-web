@@ -27,10 +27,13 @@
   -webkit-touch-callout: none;
 }
 [hidden] { display: none !important; }
-html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+html, body {
+  margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000;
+  touch-action: pan-y; overscroll-behavior: none;
+}
 body { font: 16px/1.4 Cart, monospace; color: #fff; -webkit-tap-highlight-color: transparent; }
 button { font: inherit; color: inherit; cursor: pointer; }
-button { appearance: none; border-radius: 0; touch-action: manipulation; }
+button { appearance: none; border-radius: 0; touch-action: pan-y; }
 button:focus-visible { outline: 3px solid var(--sky); outline-offset: 2px; }
 button:disabled { opacity: .5; }
 img { -webkit-user-drag: none; }
@@ -73,7 +76,7 @@ img, canvas, .panel, .turn { image-rendering: pixelated; }
 }
 #overlay {
   z-index: 4; display: grid; place-items: center; align-items: safe center; padding: 8px;
-  background: #000; overflow: auto;
+  background: #000; overflow: auto; touch-action: pan-y;
 }
 #overlay.in-game { background: rgba(0,0,0,.79); }
 .panel {
@@ -142,3 +145,10 @@ h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-
   .choice { grid-template-columns: 36px minmax(0, 1fr) 36px; }
   .choice output { font-size: clamp(11px, 2.5vw, 15px); }
 }
+
+.saved-preview { display: flex; align-items: center; justify-content: center; gap: 18px; }
+#saved-thumbnail { height: min(144px, 40dvh); width: auto; }
+#saved-level { font-size: 13px; color: var(--ice); }
+#confirm-note { margin: 3px 0; font: 14px/1.4 system-ui, sans-serif; text-align: center; }
+.confirm-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.confirm-actions #confirm-no { border-color: var(--stone); }
