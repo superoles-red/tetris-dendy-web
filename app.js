@@ -2,6 +2,11 @@ import { Engine } from './engine.js';
 import { Compositor } from './compositor.js';
 import { readScene, createSoloStart, enteringInitials } from './cartridge.js';
 import { bindControls } from './controls.js';
+import { bindInstall } from './install.js';
+import { translations, preferredLanguage } from './locale.js';
+import { bindPhoneInsets } from './viewport.js';
+
+bindPhoneInsets();
 
 const byId = id => document.getElementById(id);
 const game = byId('game');
@@ -9,22 +14,20 @@ const overlay = byId('overlay');
 const notice = byId('notice');
 const afterGame = byId('after-game');
 const resultBar = byId('result-bar');
-const initialsTip = byId('initials-tip');
+const initialsEntry = byId('initials-entry');
 const renderer = new Compositor(byId('picture'));
 const menus = ['home', 'setup', 'pause', 'audio'];
 const bindings = {
   ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down',
   ArrowUp: 'a', KeyX: 'a', KeyZ: 'b'
 };
-const tracks = ['SILENCE', 'LOGINSKA', 'BRADINSKY', 'KARINKA', 'TROIKA'];
 const levels = Array.from({ length: 10 }, (_, n) => n);
 const rows = [0, 3, 6, 9, 12];
 const volumes = [0, 10, 25, 50, 100];
-// Gravity measured in cartridge frames between consecutive unassisted drops.
-const framesPerRow = [33, 28, 24, 20, 17, 14, 11, 9, 7, 6];
-const settings = { level: 0, handicap: 0, track: 1, sound: 100, musicVolume: 100 };
+const settings = { level: 0, handicap: 0, track: 1, sound: 100, musicVolume: 100, language: preferredLanguage() };
 try {
   const s = JSON.parse(localStorage.getItem('tengen-settings')) || {};
+  if (s.language === 'en' || s.language === 'ru') settings.language = s.language;
   if (levels.includes(s.level)) settings.level = s.level;
   if (rows.includes(s.handicap)) settings.handicap = s.handicap;
   const track = s.track ?? s.music;
@@ -45,6 +48,11 @@ const heldInputs = new Map();
 const padButtons = new Map([...document.querySelectorAll('[data-button]')].map(node => [node.dataset.button, node]));
 const engine = new Engine({ onFrame, onError: fail });
 const controls = bindControls({ pad: document.querySelector('.pad'), setInput, pause });
+const installation = bindInstall({
+  language: settings.language,
+  canReload: () => view === 'home',
+  onContinue: () => byId('play').focus({ preventScroll: true })
+});
 const refreshChoices = [];
 
 function applyMix() {
@@ -85,6 +93,7 @@ function releaseAll() {
 function menu(name) {
   if (view === 'audio') engine.stopPreview();
   view = name;
+  overlay.dataset.menu = name;
   const inGame = name === 'pause' || name === 'audio';
   overlay.hidden = false;
   overlay.classList.toggle('in-game', inGame);
@@ -96,6 +105,7 @@ function menu(name) {
   notice.hidden = true;
   const first = { home: 'play', setup: 'start', pause: 'resume', audio: 'audio-back' }[name];
   byId(first).focus({ preventScroll: true });
+  if (name === 'home') installation.checkReady();
 }
 function pause() {
   if (view !== 'game') return;
@@ -119,6 +129,7 @@ function enterRun() {
   resultBar.hidden = true;
   game.classList.remove('scores');
   activeScene = 'play';
+  game.dataset.scene = activeScene;
   applyMix();
   engine.setMuted(false);
   resume();
@@ -137,6 +148,7 @@ function home() {
 }
 
 function showMessage(message) {
+  overlay.dataset.menu = 'notice';
   overlay.hidden = false;
   game.hidden = true;
   byId('art').hidden = true;
@@ -148,7 +160,7 @@ function showMessage(message) {
 function fail(error) {
   view = 'error';
   engine.setPaused(true);
-  showMessage(error.message || 'Не удалось запустить игру.');
+  showMessage(translations[settings.language].error);
   console.error(error);
 }
 
@@ -161,7 +173,7 @@ async function begin() {
   engine.setPaused(true);
   engine.wakeAudio();
   engine.setMuted(true);
-  showMessage('STARTING…');
+  showMessage(translations[settings.language].starting);
   try {
     const scene = readScene(engine.nes);
     if ((scene === 'scores' && !enteringInitials(engine.nes)) || scene === 'title') {
@@ -194,7 +206,11 @@ function onFrame(buffer, nes, present = true) {
   if (view !== 'game') return;
   let scene = readScene(nes);
   if (scene === 'boot') scene = activeScene;
-  activeScene = scene;
+  if (scene !== activeScene) {
+    releaseAll();
+    activeScene = scene;
+    game.dataset.scene = scene;
+  }
   if (scene === 'gameover' || scene === 'scores') observedEnd = true;
   if (observedEnd && ['title','demo','mode','level','music','handicap'].includes(scene)) {
     home();
@@ -209,59 +225,132 @@ function onFrame(buffer, nes, present = true) {
   if (showResults) {
     const editing = enteringInitials(nes);
     if (afterGame.hidden !== editing) afterGame.hidden = editing;
-    if (initialsTip.hidden === editing) initialsTip.hidden = !editing;
+    if (initialsEntry.hidden === editing) initialsEntry.hidden = !editing;
   }
 }
 
-function addChoice(container, label, values, read, change, format = String, note) {
+function localize() {
+  const lang = settings.language;
+  const t = translations[lang];
+  document.documentElement.lang = lang;
+  document.title = t.pageTitle;
+  const art = byId('art');
+  const title = 'assets/title' + (lang === 'ru' ? '-ru' : '');
+  art.querySelector('source').srcset = title + '-motion.png';
+  art.querySelector('img').src = title + '.png';
+  art.querySelector('img').alt = t.titleArt;
+  const text = {
+    '#play': t.play, '#setup-menu h1': t.setup, '#start': t.start, '#setup-back': t.back,
+    '#pause-menu h1': t.pause, '#resume': t.resume, '#restart': t.restart, '#main-menu': t.mainMenu,
+    '#sound': t.sound, '#audio-menu h1': t.sound, '#audio-back': t.back, '#after-game': t.playAgain,
+    '#home-support': t.support, '#initials-entry span': t.initials
+  };
+  for (const [selector, value] of Object.entries(text)) document.querySelector(selector).textContent = value;
+  byId('home-support').title = t.supportHint;
+  const labels = {
+    '#machine': t.pageTitle, '#game': t.game, '#overlay': t.gameMenu, '#picture': t.field,
+    '.pad': t.controls, '#initials-entry': t.enterInitials, '[data-letter=left]': t.previousLetter,
+    '[data-letter=right]': t.nextLetter, '[data-letter=a]': t.confirmLetter, '#pause-key': t.pause
+  };
+  for (const [selector, label] of Object.entries(labels)) document.querySelector(selector).setAttribute('aria-label', label);
+  byId('pause-key').title = t.pause + ' · Esc';
+  const shortcuts = { left: '←', right: '→', down: '↓', a: 'X / ↑', b: 'Z' };
+  for (const [key, node] of padButtons) {
+    node.setAttribute('aria-label', t[key]);
+    node.title = t[key] + ' · ' + shortcuts[key];
+  }
+  installation.setLanguage(lang);
+}
+
+function addChoice(container, key, values, read, change, format = String) {
   const row = document.createElement('div');
   row.className = 'choice';
   const center = document.createElement('div');
   const heading = document.createElement('small');
-  heading.textContent = label;
   const output = document.createElement('output');
-  output.setAttribute('aria-label', label);
   center.append(heading, output);
-  const detail = note ? document.createElement('span') : null;
-  if (detail) { detail.id = 'speed'; center.append(detail); }
-  function refresh() {
-    output.textContent = format(read());
-    if (detail) detail.textContent = note(read());
-  }
-  refresh();
-  refreshChoices.push(refresh);
   function arrow(direction) {
     const button = document.createElement('button');
-    button.setAttribute('aria-label', (direction < 0 ? 'Previous ' : 'Next ') + label.toLowerCase());
     const image = document.createElement('img');
     image.src = 'assets/arrow.png';
     image.alt = '';
     button.append(image);
     button.onclick = () => {
       change(values[(values.indexOf(read()) + direction + values.length) % values.length]);
-      settingsChanged(label === 'MUSIC' || label === 'TRACK');
+      settingsChanged(key === 'music' || key === 'track');
     };
     return button;
   }
-  row.append(arrow(-1), center, arrow(1));
+  const previous = arrow(-1), next = arrow(1);
+  function refresh() {
+    const t = translations[settings.language];
+    const label = t[key];
+    heading.textContent = label;
+    output.setAttribute('aria-label', label);
+    output.textContent = format(read(), t);
+    previous.setAttribute('aria-label', t.previous + ' ' + label.toLowerCase());
+    next.setAttribute('aria-label', t.next + ' ' + label.toLowerCase());
+  }
+  refresh();
+  refreshChoices.push(refresh);
+  row.append(previous, center, next);
   byId(container + '-choices').append(row);
 }
 
-addChoice('setup', 'LEVEL', levels, () => settings.level, n => { settings.level = n; }, String,
-  n => (60.0988 / framesPerRow[n]).toFixed(1) + ' ROWS/SEC');
-addChoice('setup', 'GARBAGE ROWS', rows, () => settings.handicap, n => { settings.handicap = n; });
-addChoice('setup', 'MUSIC', [0,1,2,3,4], () => settings.musicVolume ? settings.track : 0, n => {
+function addLanguageSwitch(container) {
+  const row = document.createElement('div');
+  row.className = 'language-choice';
+  row.setAttribute('role', 'group');
+  const heading = document.createElement('small');
+  row.append(heading);
+  for (const [code, label] of [['ru', 'РУС'], ['en', 'ENG']]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.lang = code;
+    button.dataset.language = code;
+    button.textContent = label;
+    button.setAttribute('aria-label', code === 'ru' ? 'Русский' : 'English');
+    button.onclick = () => {
+      if (code === settings.language) return;
+      engine.setLanguage(code);
+      if (view === 'audio') {
+        engine.renderPausedFrame((buffer, nes) => renderer.draw(buffer, activeScene, nes));
+      }
+      settings.language = code;
+      localize();
+      settingsChanged(false);
+    };
+    row.append(button);
+  }
+  function refresh() {
+    heading.textContent = translations[settings.language].language;
+    row.setAttribute('aria-label', heading.textContent);
+    for (const button of row.querySelectorAll('button')) {
+      button.setAttribute('aria-pressed', String(button.dataset.language === settings.language));
+    }
+  }
+  refresh();
+  refreshChoices.push(refresh);
+  byId(container + '-choices').append(row);
+}
+
+addChoice('setup', 'level', levels, () => settings.level, n => { settings.level = n; });
+addChoice('setup', 'rows', rows, () => settings.handicap, n => { settings.handicap = n; });
+addChoice('setup', 'music', [0,1,2,3,4], () => settings.musicVolume ? settings.track : 0, n => {
   if (n === 0) settings.musicVolume = 0;
   else {
     settings.track = n;
     if (!settings.musicVolume) settings.musicVolume = 100;
   }
-}, n => tracks[n]);
+}, (n, t) => t.tracks[n]);
+addLanguageSwitch('setup');
 
-const volumeText = n => n ? n + '%' : 'OFF';
-addChoice('audio', 'SOUND FX', volumes, () => settings.sound, n => { settings.sound = n; }, volumeText);
-addChoice('audio', 'MUSIC', volumes, () => settings.musicVolume, n => { settings.musicVolume = n; }, volumeText);
-addChoice('audio', 'TRACK', [1,2,3,4], () => settings.track, n => { settings.track = n; }, n => tracks[n]);
+const volumeText = (n, t) => n ? n + '%' : t.off;
+addChoice('audio', 'effects', volumes, () => settings.sound, n => { settings.sound = n; }, volumeText);
+addChoice('audio', 'music', volumes, () => settings.musicVolume, n => { settings.musicVolume = n; }, volumeText);
+addChoice('audio', 'track', [1,2,3,4], () => settings.track, n => { settings.track = n; }, (n, t) => t.tracks[n]);
+addLanguageSwitch('audio');
+localize();
 
 byId('play').onclick = () => menu('setup');
 byId('setup-back').onclick = home;
@@ -277,12 +366,28 @@ afterGame.onclick = () => {
   menu('setup');
 };
 
+function tapCartridge(button) {
+  setInput('tap-' + button, button, true);
+  setInput('tap-' + button, button, false);
+}
+initialsEntry.addEventListener('click', event => {
+  const button = event.target.closest('[data-letter]');
+  if (button && view === 'game' && enteringInitials(engine.nes)) tapCartridge(button.dataset.letter);
+});
+byId('screen').addEventListener('click', () => {
+  if (view === 'game' && activeScene === 'dance') tapCartridge('a');
+});
+
 document.addEventListener('contextmenu', event => { if (game.contains(event.target)) event.preventDefault(); });
 window.addEventListener('keydown', event => {
-  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (installation.isOpen() || event.ctrlKey || event.metaKey || event.altKey) return;
   const code = event.code;
   if (view === 'game') {
-    if (bindings[code]) {
+    if ((code === 'Enter' || code === 'Space') && activeScene === 'scores' && !initialsEntry.hidden) {
+      if (event.target.closest('[data-letter]')) return;
+      event.preventDefault();
+      if (!event.repeat) tapCartridge('a');
+    } else if (bindings[code]) {
       event.preventDefault();
       setInput(code, bindings[code], true);
     } else if (['Escape','KeyP','Space','Enter'].includes(code)) {
@@ -315,7 +420,7 @@ window.addEventListener('pagehide', suspend);
 document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); });
 
 try {
-  await engine.load();
+  await engine.load(settings.language);
   loaded = true;
   byId('play').disabled = false;
   byId('start').disabled = false;

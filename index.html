@@ -5,17 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>Tetris · Tengen</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/apple-touch.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" href="assets/block.png" type="image/png">
   <link rel="preload" as="font" href="assets/tengen.ttf" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="controls.css">
+  <link rel="stylesheet" href="install.css">
 </head>
 <body>
   <main id="machine" aria-label="Tengen Tetris">
     <section id="game" aria-label="Game" hidden>
       <div id="screen"><canvas id="picture" aria-label="Tetris playfield and statistics"></canvas></div>
       <div id="result-bar" hidden>
-        <span id="initials-tip" hidden><img src="assets/arrow.png" class="back-arrow" alt="Left"><img src="assets/arrow.png" alt="Right"> LETTER &nbsp; TURN OK</span>
+        <div id="initials-entry" role="group" aria-label="Enter your initials" hidden>
+          <div class="letter-choice">
+            <button class="letter-step" data-letter="left" aria-label="Previous letter"><img class="back-arrow" src="assets/arrow.png" alt=""></button>
+            <span>INITIALS</span>
+            <button class="letter-step" data-letter="right" aria-label="Next letter"><img src="assets/arrow.png" alt=""></button>
+          </div>
+          <button class="action primary" data-letter="a" aria-label="Confirm letter">OK</button>
+        </div>
         <button id="after-game" class="action primary" hidden>PLAY AGAIN</button>
       </div>
       <div class="pad" aria-label="Game controls">
@@ -31,7 +44,8 @@
         </div>
       </div>
     </section>
-    <section id="overlay" aria-label="Game menu">
+    <section id="overlay" aria-label="Game menu" data-menu="home">
+      <button id="home-support" disabled>SUPPORT</button>
       <div id="panel" class="panel cover">
         <picture id="art">
           <source media="(prefers-reduced-motion: no-preference)" srcset="assets/title-motion.png">
@@ -49,8 +63,8 @@
         <div class="menu" id="pause-menu" hidden>
           <h1>PAUSE</h1>
           <button class="action primary" id="resume">RESUME</button>
-          <button class="action" id="restart">RESTART</button>
           <button class="action" id="sound">SOUND</button>
+          <button class="action" id="restart">RESTART</button>
           <button class="action" id="main-menu">MAIN MENU</button>
         </div>
         <div class="menu" id="audio-menu" hidden>

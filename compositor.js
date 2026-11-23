@@ -6,7 +6,15 @@ const LABELS = {
   lines: [108, 32, 40, 8],
   level: [108, 48, 40, 8],
   high: [160, 16, 80, 8],
-  stats: [176, 48, 40, 8]
+  stats: [176, 48, 40, 8],
+  ranking: [64, 80, 136, 8]
+};
+const RU_LABELS = {
+  ...LABELS,
+  score: [112, 16, 32, 8],
+  high: [168, 16, 48, 8],
+  stats: [152, 48, 80, 8],
+  ranking: [104, 80, 48, 8]
 };
 const NUMBERS = {
   score: [7, 12, 2], lines: [9, 12, 4], level: [11, 12, 6], high: [19, 29, 4]
@@ -14,9 +22,11 @@ const NUMBERS = {
 const GAME = new Set(['play', 'pause', 'gameover', 'dance']);
 const BLACK = 0xff000000;
 const SRC_WIDTH = 256;
+const STAGE_WIDTH = 33;
+const SOLO_DANCERS = 6;
 const WELL_W = 88;
 const WELL_H = 184;
-const PAUSE_CORNER = 52;
+const PAUSE_CORNER = 64;
 const round = Math.round;
 
 function numberBox(ppu, key) {
@@ -82,7 +92,9 @@ export class Compositor {
   draw(buffer, scene, nes) {
     if (!buffer || !nes?.ppu) return;
     this.nes = nes;
-    if (this.scene !== 'dance' || scene !== 'dance') this.firstFloor = 5;
+    const language = nes.cartridgeLanguage ?? (nes.rom.mapperType === 3 ? 'ru' : 'en');
+    this.labels = language === 'ru' ? RU_LABELS : LABELS;
+    if (this.scene !== 'dance' || scene !== 'dance') this.firstFloor = SOLO_DANCERS - 1;
     this.scene = scene;
     const pixels = this.pixels;
     for (let i = 0; i < 256 * 240; i++) pixels[i] = BLACK | buffer[i];
@@ -120,12 +132,17 @@ export class Compositor {
       this.preview = this.inkBounds(80, 240, 32, 24);
       this.graph = this.graphBox(buffer);
       if (scene === 'dance') {
-        const oam = ppu.spriteMem;
-        for (let i = 0; i < 256; i += 4) {
-          const foot = oam[i] + 8;
-          const x = oam[i + 3];
-          if (x >= 108 && x < 144 && foot >= 80 && foot <= 224) {
-            this.firstFloor = Math.min(this.firstFloor, Math.min(5, Math.floor((foot - 80) / 24)));
+        const ram = nes.cpu.mem;
+        if (ram[0x6a] < 0x7c) {
+          // Before the cartridge converts clears into bonus points, it
+          // selects 1 + triples + twice the Tetrises, capped at six in solo.
+          const count = Math.min(SOLO_DANCERS, 1 + ram[0x70] + 2 * ram[0x72]);
+          this.firstFloor = SOLO_DANCERS - count;
+        } else {
+          // $8D6B assigns each dancer an animation pointer. Use the actual
+          // pointers even while their sprites are behind the stage entrance.
+          for (let i = 0; i < SOLO_DANCERS; i++) {
+            if (ram[0x01a2 + i]) this.firstFloor = Math.min(this.firstFloor, SOLO_DANCERS - i - 1);
           }
         }
       }
@@ -170,7 +187,7 @@ export class Compositor {
   }
 
   metric(key, cx, y, width, scale, previewHeight = Infinity) {
-    const label = LABELS[key];
+    const label = this.labels[key];
     const small = Math.min(scale, width / label[2]);
     this.fit(label, cx, y, small);
     const top = y + 8 * small + 4 * scale;
@@ -182,7 +199,7 @@ export class Compositor {
   }
 
   stats(cx, y, width, height, scale) {
-    this.fit(LABELS.stats, cx, y, scale, width);
+    this.fit(this.labels.stats, cx, y, scale, width);
     const top = y + 11 * scale;
     this.chart(cx, top, width, height - 11 * scale, scale * 1.3);
   }
@@ -224,18 +241,19 @@ export class Compositor {
       this.fit([16, tally[i], 80, 16], x + 40 * k, y + (21 + 16.5 * i) * k, .86 * k);
     }
     // Each occupied story keeps its original floor and sprite animation.
-    const count = 6 - this.firstFloor;
+    const count = SOLO_DANCERS - this.firstFloor;
     const cols = count >= 3 ? 2 : 1;
     const rows = Math.ceil(count / cols);
-    const s = Math.min(72 / (cols * 32 + (cols - 1) * 4), 69 / (rows * 24 + (rows - 1) * 2));
+    const s = Math.min(72 / (cols * STAGE_WIDTH + (cols - 1) * 4), 69 / (rows * 24 + (rows - 1) * 2));
     const sceneTop = 104 + (69 - (rows * 24 + (rows - 1) * 2) * s) / 2;
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / cols);
       const inRow = Math.min(cols, count - row * cols);
-      const start = 40 - ((32 * inRow + (inRow - 1) * 4) * s) / 2;
+      const start = 40 - ((STAGE_WIDTH * inRow + (inRow - 1) * 4) * s) / 2;
       const floor = this.firstFloor + i;
-      this.blit([112, 85 + 24 * floor, 32, 24], x + (start + (i % cols) * 36 * s) * k,
-        y + (sceneTop + row * 26 * s) * k, 32 * s * k, 24 * s * k);
+      // The black edge at x=144 can show one extra pixel of a moving limb.
+      this.blit([112, 85 + 24 * floor, STAGE_WIDTH, 24], x + (start + (i % cols) * (STAGE_WIDTH + 4) * s) * k,
+        y + (sceneTop + row * 26 * s) * k, STAGE_WIDTH * s * k, 24 * s * k);
     }
   }
 
@@ -263,18 +281,11 @@ export class Compositor {
     const rail = wide ? Math.min(140, w * .27) : 0;
     const designHeight = wide ? 164 : 202;
     const cx = wide ? (w + rail) / 2 : w / 2;
-    // The result bar already has its own 48px. In portrait, short screens
-    // can otherwise put the bottom of the last table column under the pad.
-    const lower = wide ? gap : 60;
-    let upper = gap;
-    let k = Math.min(3.5, (w - 2 * gap - rail) / 144, (h - upper - lower) / designHeight);
-    if (cx + 68 * k > w - PAUSE_CORNER && (h - lower + upper - designHeight * k) / 2 < PAUSE_CORNER) {
-      upper = PAUSE_CORNER;
-      k = Math.min(k, (h - upper - lower) / designHeight);
-    }
+    // The result controls have their own CSS region below this canvas.
+    const k = Math.min(3.5, (w - 2 * gap - rail) / 144, (h - 2 * gap) / designHeight);
     const listW = 144 * k;
-    const top = upper + (h - upper - lower - designHeight * k) / 2;
-    this.fit([64, 80, 136, 8], cx, top, k);
+    const top = (h - designHeight * k) / 2;
+    this.fit(this.labels.ranking, cx, top, k);
     if (wide) {
       const x = cx - listW / 2 - gap - rail;
       this.sideHUD(x, top, rail, 164 * k, ['score', 'lines', 'level']);
@@ -289,7 +300,7 @@ export class Compositor {
   }
 
   inlineMetric(key, left, cy, width, scale, height) {
-    const label = LABELS[key];
+    const label = this.labels[key];
     const rect = key === 'stats' ? this.graph : numberBox(this.nes.ppu, key);
     const valueWidth = key === 'stats' ? 56 : rect[2];
     const zoom = Math.min(scale, width / (label[2] + 5 + valueWidth * 1.12));
@@ -309,7 +320,8 @@ export class Compositor {
     const pad = Math.min(7, Math.max(3, w * .012));
     const width = Math.min(w - 2 * pad, 624);
     const x = (w - width) / 2;
-    const firstW = Math.min(x + width, w - PAUSE_CORNER) - x;
+    const hasControls = this.scene === 'play';
+    const firstW = hasControls ? Math.min(x + width, w - PAUSE_CORNER) - x : width;
     const scale = Math.min(2.05, w / 260, h / 320);
     const first = this.scene === 'dance' ? [['score', .45], ['high', .55]] :
       [['next', .24], ['score', .34], ['high', .42]];
@@ -348,13 +360,17 @@ export class Compositor {
     const gap = Math.min(38, Math.max(10, left * .09));
     const side = Math.max(20, Math.min(180, left - gap - pad));
     const rightX = left + fieldW + gap;
-    const clearRight = w - PAUSE_CORNER - rightX;
+    const clearRight = w - (this.scene === 'play' ? PAUSE_CORNER : pad) - rightX;
     const rightW = clearRight >= 66 ? Math.min(side, clearRight) : side;
     const y = Math.min(38, Math.max(9, h * .05));
     const rightY = clearRight < 66 ? Math.max(PAUSE_CORNER + 2, y) : y;
     const bottom = Math.min(h - 112, h * .68);
+    // On narrower screens the right rail can share the drop glyph's
+    // horizontal position. End the rail above that glyph's upper edge.
+    const nearDrop = rightX + rightW > w * .875 - 18;
+    const rightBottom = nearDrop && this.scene !== 'dance' ? Math.min(bottom, h * .60 - 18) : bottom;
     this.sideHUD(left - gap - side, y, side, Math.max(48, bottom - y), ['score', 'lines', 'level'], true);
-    this.sideHUD(rightX, rightY, rightW, Math.max(48, bottom - rightY), ['next', 'high', 'stats'], true);
+    this.sideHUD(rightX, rightY, rightW, Math.max(48, rightBottom - rightY), ['next', 'high', 'stats'], true);
   }
 
   paint() {

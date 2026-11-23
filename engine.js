@@ -1,4 +1,5 @@
 import './vendor/jsnes.js';
+import { remapCartridge } from './cartridge.js';
 import { CartridgeMix } from './cartridge-audio.js';
 
 const FRAME_MS = 1000 / 60.0988;
@@ -157,6 +158,7 @@ export class Engine {
     this.audio = new CartridgeAudio();
     this.mix = new CartridgeMix((left, right) => this.audio.write(left, right));
     this.nes = null;
+    this.language = 'en';
     this.started = false;
     this.paused = false;
     this.present = true;
@@ -167,10 +169,14 @@ export class Engine {
     this.tick = this.tick.bind(this);
   }
 
-  async load() {
-    const response = await fetch(new URL('./game.nes', import.meta.url));
-    if (!response.ok) throw new Error('Не удалось загрузить картридж Tetris.');
-    this.rom = new Uint8Array(await response.arrayBuffer());
+  async load(language = this.language) {
+    this.language = language;
+    const entries = await Promise.all(Object.entries({ en: './game.nes', ru: './game-ru.nes' }).map(async ([key, path]) => {
+      const response = await fetch(new URL(path, import.meta.url));
+      if (!response.ok) throw new Error('Не удалось загрузить картридж Tetris.');
+      return [key, new Uint8Array(await response.arrayBuffer())];
+    }));
+    this.cartridges = Object.fromEntries(entries);
     this.nes = new globalThis.jsnes.NES({
       sampleRate: SAMPLE_RATE,
       onFrame: buffer => this.onFrame?.(buffer, this.nes, this.present),
@@ -183,7 +189,8 @@ export class Engine {
   reset() {
     this.clearButtons();
     this.audio.clear();
-    this.nes.loadROM(this.rom);
+    this.nes.loadROM(this.cartridges[this.language]);
+    this.nes.cartridgeLanguage = this.language;
     this.nes.ppu.clipToTvSize = false;
     this.mix.attach(this.nes);
     this.totalFrames = 0;
@@ -262,14 +269,43 @@ export class Engine {
     if (!this.paused) this.request = requestAnimationFrame(this.tick);
   }
 
+  setLanguage(language) {
+    if (language !== 'ru' && language !== 'en') throw new Error('Unknown cartridge language');
+    if (this.language === language) return;
+    if (this.nes) {
+      remapCartridge(this.nes, this.cartridges[this.language], this.cartridges[language]);
+      this.nes.cartridgeLanguage = language;
+    }
+    this.language = language;
+  }
+
+  renderPausedFrame(present) {
+    if (!this.paused || !this.nes) return false;
+    const preview = new globalThis.jsnes.NES({ emulateSound: false });
+    preview.loadROM(this.cartridges[this.language]);
+    preview.cartridgeLanguage = this.language;
+    preview.cpu.mem.set(this.nes.cpu.mem);
+    preview.ppu.fromJSON(cloneState(this.nes.ppu.toJSON()));
+    preview.ppu.clipToTvSize = false;
+    // The last completed picture still contains the previous cartridge's text.
+    // Scan the frozen video memory again without executing a game instruction.
+    preview.ppu.startFrame();
+    preview.ppu.advanceDots(341 * 262 + 2);
+    present(preview.ppu.buffer, preview);
+    return true;
+  }
+
   captureStart() {
-    return { console: cloneState(this.nes.toJSON()), mix: this.mix.snapshot() };
+    return { language: this.language, console: cloneState(this.nes.toJSON()), mix: this.mix.snapshot() };
   }
 
   restoreStart(state) {
     this.clearButtons();
     this.audio.clear();
     this.nes.fromJSON(cloneState(state.console));
+    const source = state.language ?? 'en';
+    if (source !== this.language) remapCartridge(this.nes, this.cartridges[source], this.cartridges[this.language]);
+    this.nes.cartridgeLanguage = this.language;
     this.nes.ppu.clipToTvSize = false;
     this.mix.attach(this.nes, state.mix);
     this.mix.requestTrack(this.paused);

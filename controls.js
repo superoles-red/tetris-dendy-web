@@ -2,6 +2,8 @@
 // switches the held direction, independent of where the finger first landed.
 export function bindControls({ pad, setInput, pause }) {
   const touches = new Map();
+  const game = pad.closest('#game');
+  const isPlaying = () => !game.inert && game.dataset.scene === 'play';
   const movement = pad.querySelector('.moves');
   const rotation = pad.querySelector('.turns');
   const down = pad.querySelector('[data-button="down"]');
@@ -16,11 +18,11 @@ export function bindControls({ pad, setInput, pause }) {
   function readPoint(x, y) {
     const box = pad.getBoundingClientRect();
     const mid = box.left + box.width * 0.5;
-    if (y < box.top + box.height / 2 || y > box.bottom || x < box.left || x > box.right) return null;
     const drop = down.getBoundingClientRect();
-    if (!pad.closest('.scores') && x >= drop.left && x < drop.right && y >= drop.top && y < drop.bottom) {
+    if (x >= drop.left && x < drop.right && y >= drop.top && y < drop.bottom) {
       return { group: 'action', button: 'down' };
     }
+    if (y < box.top + box.height / 2 || y > box.bottom || x < box.left || x > box.right) return null;
     const left = x < mid;
     let split = box.left + box.width * (left ? 0.25 : 0.75);
     if (landscape.matches) {
@@ -43,8 +45,16 @@ export function bindControls({ pad, setInput, pause }) {
     setInput(id, touch.button, false);
   }
 
+  function clear() {
+    for (const id of [...touches.keys()]) release(id);
+  }
+
+  // Native scene changes can happen while a player's thumbs are still down.
+  new MutationObserver(() => { if (!isPlaying()) clear(); })
+    .observe(game, { attributes: true, attributeFilter: ['inert', 'data-scene'] });
+
   pad.addEventListener('pointerdown', event => {
-    if (pauseButton.contains(event.target) || event.button !== 0) return;
+    if (!isPlaying() || pauseButton.contains(event.target) || event.button !== 0) return;
     const hit = readPoint(event.clientX, event.clientY);
     if (!hit) return;
     event.preventDefault();
@@ -56,7 +66,7 @@ export function bindControls({ pad, setInput, pause }) {
     const id = event.pointerId;
     const touch = touches.get(id);
     if (!touch) return;
-    const next = readPoint(event.clientX, event.clientY);
+    const next = isPlaying() && readPoint(event.clientX, event.clientY);
     if (!next || next.group !== touch.group) {
       release(id);
     } else if (touch.button !== next.button) {
@@ -71,7 +81,7 @@ export function bindControls({ pad, setInput, pause }) {
   // Keyboard/assistive activation of the native button does not create a pointer.
   for (const button of buttons) {
     button.addEventListener('click', event => {
-      if (event.detail !== 0) return;
+      if (!isPlaying() || event.detail !== 0) return;
       const name = button.dataset.button;
       const id = 'activate-' + name;
       setInput(id, name, true);
@@ -79,9 +89,5 @@ export function bindControls({ pad, setInput, pause }) {
     });
   }
   pauseButton.onclick = pause;
-  return {
-    clear() {
-      for (const id of [...touches.keys()]) release(id);
-    }
-  };
+  return { clear };
 }

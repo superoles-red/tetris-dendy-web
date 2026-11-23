@@ -1,0 +1,33 @@
+#install-dialog {
+  box-sizing: border-box; position: fixed; margin: auto;
+  inset: calc(var(--ui-safe-top) + 8px) calc(var(--device-safe-right) + 8px)
+         calc(var(--device-safe-bottom) + 8px) calc(var(--device-safe-left) + 8px);
+  max-width: min(92vw, 372px, calc(100vw - var(--device-safe-left) - var(--device-safe-right) - 16px));
+  max-height: min(92dvh, calc(100dvh - var(--ui-safe-top) - var(--device-safe-bottom) - 16px));
+  overflow-y: auto;
+  padding: 12px clamp(12px, 4vw, 24px) 16px; text-align: center;
+  border: 12px solid var(--sky); border-image: url('./assets/frame.png') 16 / 12px / 0 repeat;
+  color: #fff; background: #000; z-index: 12;
+}
+#install-dialog[open] { display: grid; align-content: start; gap: 8px; width: 100%; }
+#install-dialog::backdrop { background: #000; }
+#install-dialog h1, #install-dialog .action, #reopen-install { text-transform: uppercase; }
+#install-dialog .action { white-space: normal; }
+#install-dialog:lang(ru) h1 { font-size: clamp(14px, 4.1vw, 18px); }
+#install-dialog:lang(ru) .action, #reopen-install:lang(ru) { font-size: clamp(12px, 3.5vw, 15px); }
+#install-dialog h1 { margin: 0 0 6px; }
+#install-dialog img { margin: auto; width: min(112px, 23dvh); height: auto; image-rendering: pixelated; }
+#install-hint, #install-offline { margin: 3px 0; font: 16px/1.45 system-ui, sans-serif; }
+#install-offline { font-size: 13px; color: var(--ice); }
+#reopen-install { color: var(--ice); }
+@media (orientation: landscape) and (max-height: 480px) {
+  #install-dialog {
+    max-width: min(540px, calc(100vw - var(--device-safe-left) - var(--device-safe-right) - 16px));
+    padding: 10px 14px;
+  }
+  #install-dialog[open] { grid-template-columns: minmax(36px, 56px) minmax(0, 1fr); gap: 6px 12px; }
+  #install-dialog img { grid-column: 1; grid-row: 1 / span 2; width: 100%; align-self: start; }
+  #install-dialog > :not(img) { grid-column: 2; }
+  #install-dialog h1 { margin: 0; font-size: 16px; }
+  #install-hint { margin: 0; font-size: 14px; line-height: 1.35; }
+}
