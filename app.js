@@ -307,7 +307,7 @@ function fitRecordNames() {
     }
   }
 }
-new ResizeObserver(fitRecordNames).observe(recordsTable);
+new ResizeObserver(() => requestAnimationFrame(fitRecordNames)).observe(recordsTable);
 document.fonts.ready.then(fitRecordNames);
 
 function renderRecords() {

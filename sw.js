@@ -1,8 +1,8 @@
 // Run python3 tools/refresh-offline.py after modifying the game.
 // BEGIN GENERATED OFFLINE BUNDLE
-const BUILD = '9e18bda6305617f3a543';
+const BUILD = '6c56e9287bc137288a82';
 const FILES = [
-  ["app.js", "sha256-iKY7kznpx9Sn98ANbK0HJoVZUJ5V3vL7bDamsgTGuDQ="],
+  ["app.js", "sha256-b12gHq8N5Ffd48QylZ7y3q0Hh8Qp2WMtBwjmmyDlZRI="],
   ["assets/arrow.png", "sha256-Xkt8bTzGyHK5hj+6p2X7RirhFsHgQqMSyP3W3DyHzBc="],
   ["assets/block.png", "sha256-bHHsaBDkKFKloGbXN9wtirolvFKFXAZTjCPYZu1GSO8="],
   ["assets/frame.png", "sha256-gG5M38iSOY1Ad2HuBi6nKUM4l7yWPpVfz+c/9nAzhiA="],
