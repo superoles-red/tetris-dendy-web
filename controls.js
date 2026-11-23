@@ -30,11 +30,12 @@ export function bindControls({ pad, setInput, pause }) {
         : mid;
       if (x >= movementEdge) return { group: 'drop', button: 'down' };
     }
-    const start = box.top + box.height * (portrait.matches ? 0.38 : 0.5);
-    if (y < start) return null;
     const left = x < mid;
+    const isPortrait = portrait.matches;
+    const start = isPortrait && !left ? drop.bottom : box.top + box.height * (isPortrait ? 0.38 : 0.5);
+    if (y < start) return null;
     let split = box.left + box.width * (left ? 0.25 : 0.75);
-    if (!portrait.matches) {
+    if (!isPortrait) {
       const cluster = (left ? movement : rotation).getBoundingClientRect();
       // NuBu's landscape thumb zone reaches at least 20px and up to
       // another 12% of the screen beyond the visible pair.
