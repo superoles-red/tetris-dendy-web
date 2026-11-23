@@ -152,3 +152,10 @@ h1 { color: var(--gold); font: inherit; font-size: 20px; margin: 0 0 12px; text-
 #confirm-note { margin: 3px 0; font: 14px/1.4 system-ui, sans-serif; text-align: center; }
 .confirm-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .confirm-actions #confirm-no { border-color: var(--stone); }
+
+#records-empty { color: var(--ice); font-size: 13px; text-align: center; margin: 10px 0 16px; }
+#records-table { border-collapse: collapse; width: 100%; margin-bottom: 10px; color: var(--sky); }
+#records-table th, #records-table td { padding: 3px 2px; text-align: right; font-weight: normal; }
+#records-table td { font-size: clamp(10px, min(4vw, 3.6dvh), 16px); }
+#records-table th { color: var(--ice); font-size: 10px; }
+#records-table :is(th, td):nth-child(2) { text-align: left; white-space: pre; padding-left: 6px; }

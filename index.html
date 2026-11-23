@@ -54,6 +54,23 @@
         <div class="menu" id="home-menu">
           <button class="action primary" id="continue-run" hidden>CONTINUE</button>
           <button class="action primary" id="play" disabled>PLAY</button>
+          <button class="action" id="records">RECORDS</button>
+        </div>
+        <div class="menu" id="records-menu" hidden>
+          <h1>RECORDS</h1>
+          <p id="records-empty" hidden>NO RECORDS YET</p>
+          <table id="records-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col" id="records-name">NAME</th>
+                <th scope="col" id="records-score">SCORE</th>
+                <th scope="col" id="records-lines">LINES</th>
+              </tr>
+            </thead>
+            <tbody id="record-rows"></tbody>
+          </table>
+          <button class="action primary" id="records-back">BACK</button>
         </div>
         <div class="menu" id="confirm-menu" hidden>
           <h1 id="confirm-title"></h1>

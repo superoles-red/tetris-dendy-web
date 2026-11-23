@@ -7,6 +7,7 @@ import { bindInstall } from './install.js';
 import { translations, preferredLanguage } from './locale.js';
 import { bindPhoneInsets } from './viewport.js';
 import { openSavedRun, saveOnExit } from './saved-run.js';
+import { addRecord, editingRecord, initialsText, loadRecords, readConfirmedRecord, seedRanking } from './rankings.js';
 
 bindPhoneInsets();
 
@@ -18,7 +19,7 @@ const afterGame = byId('after-game');
 const resultBar = byId('result-bar');
 const initialsEntry = byId('initials-entry');
 const renderer = new Compositor(byId('picture'), resultBar);
-const menus = ['home', 'confirm', 'setup', 'pause', 'audio'];
+const menus = ['home', 'confirm', 'setup', 'pause', 'audio', 'records'];
 const SAVE_INTERVAL = 6000;
 const bindings = {
   ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down',
@@ -48,6 +49,8 @@ let runStart = null;
 let menuCheckpoint = null;
 let observedEnd = false;
 let loaded = false;
+let records = loadRecords();
+let pendingRecord = null;
 let menuMusicUnlocked = false;
 let runStore = null;
 let activeRun = null;
@@ -85,7 +88,7 @@ function unlockMenuMusic() {
   }
 }
 function isFrontMenu() {
-  return view === 'home' || view === 'setup' || view === 'confirm';
+  return view === 'home' || view === 'setup' || view === 'confirm' || view === 'records';
 }
 
 function applyMix() {
@@ -137,7 +140,11 @@ function menu(name) {
   byId('art').hidden = name !== 'home';
   for (const id of menus) byId(id + '-menu').hidden = id !== name;
   notice.hidden = true;
-  const first = { home: savedInfo ? 'continue-run' : 'play', confirm: 'confirm-no', setup: 'start', pause: 'resume', audio: 'audio-back' }[name];
+  if (name === 'records') renderRecords();
+  const first = {
+    home: savedInfo ? 'continue-run' : 'play', confirm: 'confirm-no', setup: 'start',
+    pause: 'resume', audio: 'audio-back', records: 'records-back'
+  }[name];
   byId(first).focus({ preventScroll: true });
   if (name === 'home') installation.checkReady();
   syncMenuMusic();
@@ -162,6 +169,7 @@ function resume() {
 function enterRun(scene = 'play') {
   nextSaveAt = 0;
   observedEnd = false;
+  pendingRecord = null;
   afterGame.hidden = true;
   resultBar.hidden = true;
   game.classList.remove('scores');
@@ -175,6 +183,7 @@ function restart() {
   if (!runStart) return;
   releaseAll();
   engine.restoreStart(runStart);
+  seedRanking(engine.nes, records);
   enterRun();
 }
 function home() {
@@ -272,6 +281,7 @@ async function continueSavedRun() {
     }
     engine.setPaused(true);
     engine.restoreProgress(slot.checkpoint);
+    seedRanking(engine.nes, records);
     runStart = slot.initial;
     activeRun = { id: slot.info.id, fresh: false };
     enterRun(readScene(engine.nes));
@@ -279,6 +289,29 @@ async function continueSavedRun() {
     menu('home');
   } finally {
     yes.disabled = false;
+  }
+}
+
+function renderRecords() {
+  const tbody = byId('record-rows');
+  tbody.replaceChildren();
+  records.forEach((entry, index) => {
+    const row = tbody.insertRow();
+    const position = index + 1;
+    for (const value of [position, initialsText(entry), entry.score, entry.lines]) row.insertCell().textContent = value;
+  });
+  byId('records-table').hidden = records.length === 0;
+  byId('records-empty').hidden = records.length > 0;
+}
+
+function captureRanking(nes, editing) {
+  if (editing) {
+    pendingRecord ??= editingRecord(nes);
+  } else if (pendingRecord !== null) {
+    // Wait for the score screen to commit all three initials.
+    const record = readConfirmedRecord(nes, pendingRecord, engine.language);
+    if (record) records = addRecord(record, records);
+    pendingRecord = null;
   }
 }
 
@@ -320,11 +353,17 @@ async function begin() {
     }
     const advance = createSoloStart({ level: settings.level, handicap: settings.handicap, music: engine.startMusic(settings.track) });
     let frames = 0;
+    let rankingSeeded = false;
     while (true) {
       await new Promise(requestAnimationFrame);
       const deadline = performance.now() + 12;
       do {
+        if (!rankingSeeded && ['title', 'scores'].includes(readScene(engine.nes))) {
+          seedRanking(engine.nes, records);
+          rankingSeeded = true;
+        }
         if (advance(engine.nes)) {
+          if (!rankingSeeded) seedRanking(engine.nes, records);
           applyMix();
           runStart = engine.captureStart();
           activeRun = { id: runId(), fresh: true };
@@ -365,6 +404,7 @@ function onFrame(buffer, nes, present = true) {
   }
   if (showResults) {
     const editing = enteringInitials(nes);
+    captureRanking(nes, editing);
     if (afterGame.hidden !== editing) afterGame.hidden = editing;
     if (initialsEntry.hidden === editing) initialsEntry.hidden = !editing;
   }
@@ -393,7 +433,10 @@ function localize() {
     '#play': t.play, '#setup-menu h1': t.setup, '#start': t.start, '#setup-back': t.back,
     '#pause-menu h1': t.pause, '#resume': t.resume, '#restart': t.restart, '#main-menu': t.mainMenu,
     '#sound': t.sound, '#audio-menu h1': t.sound, '#audio-back': t.back, '#after-game': t.playAgain,
-    '#home-support': t.support, '#initials-entry span': t.initials
+    '#home-support': t.support, '#initials-entry span': t.initials,
+    '#records': t.records, '#records-menu h1': t.records, '#records-back': t.back,
+    '#records-empty': t.emptyRecords, '#records-name': t.recordName,
+    '#records-score': t.recordScore, '#records-lines': t.recordLines
   };
   for (const [selector, value] of Object.entries(text)) document.querySelector(selector).textContent = value;
   byId('home-support').title = t.supportHint;
@@ -504,6 +547,14 @@ addChoice('audio', 'track', musicTracks, () => settings.track, n => { settings.t
 addLanguageSwitch('audio');
 localize();
 
+byId('records').onclick = () => menu('records');
+byId('records-back').onclick = () => menu('home');
+window.addEventListener('storage', event => {
+  if (event.key === 'tengen-local-records' || event.key === null) {
+    records = loadRecords();
+    if (view === 'records') renderRecords();
+  }
+});
 byId('play').onclick = () => savedInfo ? confirmRun('replace') : menu('setup');
 byId('continue-run').onclick = () => confirmRun('continue');
 byId('confirm-no').onclick = () => menu('home');
@@ -562,7 +613,7 @@ window.addEventListener('keydown', event => {
       }
     }
   } else if (code === 'Escape' || (code === 'KeyP' && view === 'pause')) {
-    if (!['audio', 'pause', 'setup', 'confirm'].includes(view)) return;
+    if (!['audio', 'pause', 'setup', 'confirm', 'records'].includes(view)) return;
     event.preventDefault();
     if (!event.repeat) {
       if (view === 'audio') menu('pause');
