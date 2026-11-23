@@ -21,7 +21,7 @@ export function bindControls({ pad, setInput, pause }) {
     const mid = box.left + box.width * 0.5;
     const drop = down.getBoundingClientRect();
     if (x >= drop.left && x < drop.right && y >= drop.top && y < drop.bottom) {
-      return { group: portrait.matches ? 'drop' : 'action', button: 'down' };
+      return { group: 'drop', button: 'down' };
     }
     const start = box.top + box.height * (portrait.matches ? 0.38 : 0.5);
     if (y < start || y >= box.bottom || x < box.left || x >= box.right) return null;
@@ -73,6 +73,7 @@ export function bindControls({ pad, setInput, pause }) {
   pad.addEventListener('pointermove', event => {
     const id = event.pointerId;
     const touch = touches.get(id);
+    // A thumb that started on drop holds it until release, including when it slips onto rotation.
     if (!touch || touch.group === 'drop') return;
     const next = isPlaying() && readPoint(event.clientX, event.clientY);
     if (!next || next.group !== touch.group) {

@@ -60,7 +60,13 @@
 .pad .key.held img, .pad .key:active img, .pad > .down.held, .pad > .down:active { opacity: 1; }
 .pad .key:focus-visible { outline: 2px solid var(--sky); }
 @media (orientation: landscape) {
-  .pad > .down { top: 63%; right: max(5px, calc(7.5% - 32px)); }
+  .pad > .down {
+    --drop-target-height: clamp(76px, 28%, 116px);
+    right: 0;
+    top: min(63%, calc(100% - 66px - var(--drop-target-height) / 2));
+    width: clamp(104px, 18%, 144px);
+    height: var(--drop-target-height);
+  }
 }
 @media (orientation: landscape) and (pointer: coarse) {
   .pad { --pair-width: min(28%, 202px); }
